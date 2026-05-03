@@ -1,0 +1,48 @@
+body {
+  margin: 0;
+}
+:root {
+  --size: 50px; /* Default cell size */
+  --line-color: lightgray;
+}
+.viewport {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* Hide anything outside the screen */
+  touch-action: none;
+  position: relative; /* Crucial: anchors the absolute children */
+
+  /* The background grid pattern */
+  background-color: #fafafa;
+  background-size: var(--size) var(--size);
+  background-position: var(--pan-x) var(--pan-y);
+  background-image:
+    linear-gradient(to right, #ccc 1px, transparent 1px),
+    linear-gradient(to bottom, #ccc 1px, transparent 1px);
+}
+
+.canvas-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  /* We don't use transitions here because it needs to track the mouse instantly */
+}
+
+.grid-component {
+  position: absolute; /* Positioned exactly where we want it on the canvas */
+  background-color: rgba(52, 152, 219, 0.9);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid #2980b9;
+
+  /* box-sizing ensures the 2px border doesn't make the box larger than the grid cell */
+  box-sizing: border-box;
+
+  /* Prevents the text from highlighting accidentally when the user drags the map */
+  user-select: none;
+}
