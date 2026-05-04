@@ -29,10 +29,11 @@ body {
   height: 0;
   /* We don't use transitions here because it needs to track the mouse instantly */
 }
-
+.play-area-token {
+  position: absolute;
+}
 .grid-component {
   position: absolute; /* Positioned exactly where we want it on the canvas */
-  background-color: rgba(52, 152, 219, 0.9);
   color: white;
   display: flex;
   align-items: center;

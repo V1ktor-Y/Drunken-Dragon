@@ -1,10 +1,20 @@
-import { useDroppable } from "@dnd-kit/react";
+import { useState, type ReactNode } from "react";
 
-function Droppable(id: any, children: any) {
-  const { ref } = useDroppable({ id });
+interface Props {
+  id: string;
+  gridSize: number;
+  children?: ReactNode;
+}
 
+function Droppable({ children, gridSize }: Props) {
   return (
-    <div ref={ref} style={{ width: 100, height: 100 }}>
+    <div
+      style={{
+        width: gridSize,
+        height: gridSize,
+        backgroundColor: "cornflowerblue",
+      }}
+    >
       {children}
     </div>
   );

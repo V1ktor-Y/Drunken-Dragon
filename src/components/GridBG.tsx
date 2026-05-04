@@ -1,7 +1,5 @@
 import { useState, type ReactNode } from "react";
-import testImage from "../assets/hero.png";
-import Droppable from "./Droppable";
-import Draggable from "./Draggable";
+import GridItems from "./GridItems";
 interface Props {
   children?: ReactNode;
 }
@@ -30,23 +28,6 @@ function GridBg({ children }: Props) {
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
   const GRID_SIZE = 100;
-  const gridItems = [
-    {
-      id: 1,
-      gridX: 0,
-      gridY: 0,
-      text: "Origin (0,0)",
-      image_source: testImage,
-    },
-    { id: 2, gridX: 2, gridY: 1, text: "Cell (2,1)", image_source: testImage },
-    {
-      id: 3,
-      gridX: -2,
-      gridY: -1,
-      text: "Cell (-2,-1)",
-      image_source: testImage,
-    },
-  ];
   return (
     <div
       className="viewport"
@@ -71,43 +52,10 @@ function GridBg({ children }: Props) {
           transform: `translate(${pan.x}px, ${pan.y}px)`,
         }}
       >
-        {/* 3. Render the components onto the canvas */}
-        {gridItems.map(({ id, gridX, gridY, text }) => (
-          <div
-            key={id}
-            className="grid-component"
-            style={{
-              // Convert grid coordinates to actual pixels
-              left: gridX * GRID_SIZE,
-              top: gridY * GRID_SIZE,
-              width: GRID_SIZE,
-              height: GRID_SIZE,
-            }}
-          >
-            {text}
-            <Draggable
-              key={id} // Don't forget the key prop when mapping!
-              id={id}
-              gridX={gridX}
-              gridY={gridY}
-              text={text}
-              image_source={testImage}
-            />
-          </div>
-        ))}
+        <GridItems gridSize={GRID_SIZE} panX={pan.x} panY={pan.y}></GridItems>
       </div>
     </div>
   );
-  /*
-  return (
-    <div
-      className="grid-pattern"
-      style={{ "--size": "100px" } as React.CSSProperties}
-    >
-      {children}
-    </div>
-  );
-  */
 }
 
 export default GridBg;
