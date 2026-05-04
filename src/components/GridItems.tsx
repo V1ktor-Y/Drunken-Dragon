@@ -1,6 +1,6 @@
-import testImage from "../assets/hero.png";
-import Droppable from "./Droppable";
-import { useState } from "react";
+import imgA from "../assets/ball.jpg";
+import imgB from "../assets/hornet.jpg";
+import imgC from "../assets/joy.jpg";
 import PlayAreaToken from "./PlayAreaToken";
 
 interface Props {
@@ -9,24 +9,25 @@ interface Props {
   gridSize: number;
 }
 
-function GridItems({ gridSize }: Props) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+function GridItems({ gridSize, panX, panY }: Props) {
   const gridItemData = [
     {
+      id: 0,
       gridX: 0,
       gridY: 0,
-      image_source: testImage,
+      image_source: imgA,
     },
     {
+      id: 1,
       gridX: 2,
       gridY: 1,
-      image_source: testImage,
+      image_source: imgB,
     },
     {
+      id: 2,
       gridX: -2,
       gridY: -1,
-      image_source: testImage,
+      image_source: imgC,
     },
   ];
 
@@ -35,10 +36,13 @@ function GridItems({ gridSize }: Props) {
       {gridItemData.map((item) => {
         return (
           <PlayAreaToken
-            image_source={testImage}
+            key={item.id}
+            image_source={item.image_source}
             gridSize={gridSize}
             gridX={item.gridX}
             gridY={item.gridY}
+            panX={panX}
+            panY={panY}
           ></PlayAreaToken>
         );
       })}

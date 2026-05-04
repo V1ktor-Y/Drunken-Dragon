@@ -1,22 +1,24 @@
 import { useState, type ReactNode } from "react";
 
 interface Props {
-  id: string;
   gridSize: number;
-  children?: ReactNode;
+  gridX: number;
+  gridY: number;
 }
 
-function Droppable({ children, gridSize }: Props) {
+function Droppable({ gridSize, gridX, gridY }: Props) {
   return (
     <div
       style={{
         width: gridSize,
         height: gridSize,
         backgroundColor: "cornflowerblue",
+        position: "absolute",
+        left: gridX * gridSize,
+        top: gridY * gridSize,
+        opacity: 0.5,
       }}
-    >
-      {children}
-    </div>
+    ></div>
   );
 }
 
