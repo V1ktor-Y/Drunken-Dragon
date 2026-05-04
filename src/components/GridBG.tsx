@@ -1,9 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import GridItems from "./GridItems";
-interface Props {
-  children?: ReactNode;
-}
-function GridBg({ children }: Props) {
+function GridBg() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });

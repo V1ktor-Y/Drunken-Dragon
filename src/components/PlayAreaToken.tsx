@@ -10,14 +10,7 @@ interface Props {
   gridSize: number;
 }
 
-function PlayAreaToken({
-  image_source,
-  gridSize,
-  gridX,
-  gridY,
-  panX,
-  panY,
-}: Props) {
+function PlayAreaToken({ image_source, gridSize, gridX, gridY }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [destinationCell, setDestinationCell] = useState({
     x: gridX,

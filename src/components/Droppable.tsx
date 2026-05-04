@@ -1,5 +1,3 @@
-import { useState, type ReactNode } from "react";
-
 interface Props {
   gridSize: number;
   gridX: number;
