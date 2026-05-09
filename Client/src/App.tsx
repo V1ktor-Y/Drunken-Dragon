@@ -1,10 +1,12 @@
-import GridBg from "./components/GridBG";
+import { Stage } from "./components/Stage/Stage";
+import { Sidebar } from "./components/Sidebar/Sidebar";
 
 function App() {
   return (
-    <>
-      <GridBg></GridBg>
-    </>
+    <div className="app-shell">
+      <Stage />
+      <Sidebar />
+    </div>
   );
 }
 

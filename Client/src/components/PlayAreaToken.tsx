@@ -50,8 +50,9 @@ function PlayAreaToken({ image_source, gridSize, gridX, gridY }: Props) {
 
   const handlePointerUp = (event: React.PointerEvent<HTMLImageElement>) => {
     setIsDragging(false);
-    event.currentTarget.releasePointerCapture(event.pointerId);
-    // Snap to destination cell on drop
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     setLogicalPos(destinationCell);
   };
 
