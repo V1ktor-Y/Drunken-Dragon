@@ -4,6 +4,7 @@ function GridBg() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const [gridSize, setGridSize] = useState(100);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -24,7 +25,12 @@ function GridBg() {
     setIsDragging(false);
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
-  const GRID_SIZE = 100;
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const zoomSpeed = 0.5;
+    const newSize = gridSize + (e.deltaY < 0 ? zoomSpeed : -zoomSpeed) * 10;
+
+    setGridSize(Math.max(20, Math.min(newSize, 300)));
+  };
   return (
     <div
       className="viewport"
@@ -32,9 +38,10 @@ function GridBg() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onWheel={handleWheel}
       style={
         {
-          "--size": `${GRID_SIZE}px`,
+          "--size": `${gridSize}px`,
           "--pan-x": `${pan.x}px`,
           "--pan-y": `${pan.y}px`,
           cursor: isDragging ? "grabbing" : "grab",
@@ -49,7 +56,7 @@ function GridBg() {
           transform: `translate(${pan.x}px, ${pan.y}px)`,
         }}
       >
-        <GridItems gridSize={GRID_SIZE} panX={pan.x} panY={pan.y}></GridItems>
+        <GridItems gridSize={gridSize} panX={pan.x} panY={pan.y}></GridItems>
       </div>
     </div>
   );

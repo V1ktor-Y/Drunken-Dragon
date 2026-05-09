@@ -12,43 +12,49 @@ interface Props {
 
 function PlayAreaToken({ image_source, gridSize, gridX, gridY }: Props) {
   const [isDragging, setIsDragging] = useState(false);
+
+  // Store logical coordinates instead of absolute pixels
+  const [logicalPos, setLogicalPos] = useState({ x: gridX, y: gridY });
   const [destinationCell, setDestinationCell] = useState({
     x: gridX,
     y: gridY,
   });
-  const [position, setPosition] = useState({
-    x: gridX * gridSize,
-    y: gridY * gridSize,
-  });
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    // does not send event up to parent
+  const handlePointerDown = (event: React.PointerEvent<HTMLImageElement>) => {
     event.stopPropagation();
     setIsDragging(true);
     setLastPos({ x: event.clientX, y: event.clientY });
     event.currentTarget.setPointerCapture(event.pointerId);
   };
-  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLImageElement>) => {
     if (!isDragging) return;
     const deltaX = event.clientX - lastPos.x;
     const deltaY = event.clientY - lastPos.y;
 
-    setPosition((prev) => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+    setLogicalPos((prev) => {
+      const newX = prev.x + deltaX / gridSize;
+      const newY = prev.y + deltaY / gridSize;
+
+      setDestinationCell({
+        x: Math.round(newX),
+        y: Math.round(newY),
+      });
+
+      return { x: newX, y: newY };
+    });
+
     setLastPos({ x: event.clientX, y: event.clientY });
-    setDestinationCell(() => ({
-      x: Math.round(position.x / gridSize),
-      y: Math.round(position.y / gridSize),
-    }));
   };
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLImageElement>) => {
     setIsDragging(false);
     event.currentTarget.releasePointerCapture(event.pointerId);
-    setPosition({
-      x: destinationCell.x * gridSize,
-      y: destinationCell.y * gridSize,
-    });
+    // Snap to destination cell on drop
+    setLogicalPos(destinationCell);
   };
+
   return (
     <>
       <img
@@ -58,14 +64,16 @@ function PlayAreaToken({ image_source, gridSize, gridX, gridY }: Props) {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         draggable={false}
+        onDragStart={(e) => e.preventDefault()}
         className="grid-component"
         style={{
           position: "absolute",
-          left: position.x,
-          top: position.y,
+          left: logicalPos.x * gridSize,
+          top: logicalPos.y * gridSize,
           cursor: isDragging ? "grabbing" : "grab",
-          zIndex: 10,
+          zIndex: isDragging ? 100 : 1,
         }}
       />
       {isDragging && (
@@ -73,7 +81,7 @@ function PlayAreaToken({ image_source, gridSize, gridX, gridY }: Props) {
           gridSize={gridSize}
           gridX={destinationCell.x}
           gridY={destinationCell.y}
-        ></Droppable>
+        />
       )}
     </>
   );
