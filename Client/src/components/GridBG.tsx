@@ -1,10 +1,15 @@
 import { useState } from "react";
 import GridItems from "./GridItems";
-function GridBg() {
+
+interface Props {
+  gridSize: number;
+  onGridSizeChange: (gridSize: number) => void;
+}
+
+function GridBg({ gridSize, onGridSizeChange }: Props) {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
-  const [gridSize, setGridSize] = useState(100);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -23,13 +28,15 @@ function GridBg() {
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(false);
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
   };
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     const zoomSpeed = 0.5;
     const newSize = gridSize + (e.deltaY < 0 ? zoomSpeed : -zoomSpeed) * 10;
 
-    setGridSize(Math.max(20, Math.min(newSize, 300)));
+    onGridSizeChange(Math.max(20, Math.min(newSize, 300)));
   };
   return (
     <div
@@ -48,11 +55,9 @@ function GridBg() {
         } as React.CSSProperties
       }
     >
-      {/* 2. The Invisible Canvas Layer */}
       <div
         className="canvas-layer"
         style={{
-          // Move the entire canvas by the pan amount
           transform: `translate(${pan.x}px, ${pan.y}px)`,
         }}
       >

@@ -1,24 +1,89 @@
+:root {
+  --background: #0f1419;
+  --surface: #131316;
+  --surface-raised: #171c22;
+  --surface-high: #262a30;
+  --surface-higher: #30353b;
+  --text: #fcfcfc;
+  --text-muted: #88919d;
+  --text-soft: #bec7d4;
+  --border: #333338;
+  --border-soft: #3f4852;
+  --primary: #00a3ff;
+  --primary-soft: #98cbff;
+  --danger: #ffb4ab;
+  --sidebar-width: 320px;
+  --gutter: 16px;
+  --size: 100px;
+  --pan-x: 0px;
+  --pan-y: 0px;
+  color: var(--text);
+  background: var(--background);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
 }
-:root {
-  --size: 50px; /* Default cell size */
-  --line-color: lightgray;
+
+button,
+input {
+  font: inherit;
 }
-.viewport {
+
+button {
+  color: inherit;
+}
+
+.app-shell {
+  display: flex;
   width: 100vw;
   height: 100vh;
-  overflow: hidden; /* Hide anything outside the screen */
-  touch-action: none;
-  position: relative; /* Crucial: anchors the absolute children */
+  overflow: hidden;
+  background: var(--surface);
+}
 
-  /* The background grid pattern */
-  background-color: #fafafa;
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--text);
+  background: var(--surface);
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  background-color: #11161b;
   background-size: var(--size) var(--size);
   background-position: var(--pan-x) var(--pan-y);
   background-image:
-    linear-gradient(to right, #ccc 1px, transparent 1px),
-    linear-gradient(to bottom, #ccc 1px, transparent 1px);
+    linear-gradient(to right, rgba(152, 203, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(152, 203, 255, 0.16) 1px, transparent 1px);
+}
+
+.viewport::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background-image: radial-gradient(rgba(252, 252, 252, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.45;
 }
 
 .canvas-layer {
@@ -27,23 +92,405 @@ body {
   left: 0;
   width: 0;
   height: 0;
-  /* We don't use transitions here because it needs to track the mouse instantly */
 }
-.play-area-token {
-  position: absolute;
-}
+
 .grid-component {
-  position: absolute; /* Positioned exactly where we want it on the canvas */
-  color: white;
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  border: 2px solid #2980b9;
-
-  /* box-sizing ensures the 2px border doesn't make the box larger than the grid cell */
-  box-sizing: border-box;
-
-  /* Prevents the text from highlighting accidentally when the user drags the map */
+  border: 2px solid var(--primary);
+  background: var(--surface-raised);
+  box-shadow: 0 0 12px rgba(0, 163, 255, 0.28);
+  color: white;
+  font-weight: 700;
+  object-fit: cover;
   user-select: none;
+}
+
+.turn-tracker {
+  position: absolute;
+  z-index: 20;
+  top: 24px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+}
+
+.turn-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.turn-chip {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--text);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.turn-chip-enemy {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.turn-chip-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  filter: drop-shadow(0 0 8px rgba(0, 163, 255, 0.6));
+  transform: scale(1.1);
+}
+
+.turn-chip-faded {
+  opacity: 0.4;
+}
+
+.turn-divider {
+  height: 40px;
+  border-left: 1px solid var(--border);
+}
+
+.turn-actions {
+  display: flex;
+  gap: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+.command-button,
+.icon-button,
+.zoom-button,
+.sidebar-tab {
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.command-button {
+  padding: 10px 16px;
+  border-color: var(--text);
+  color: var(--text);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.command-button:hover,
+.icon-button:hover,
+.zoom-button:hover {
+  background: var(--text);
+  color: var(--surface);
+}
+
+.command-button:active,
+.sidebar-tab:active {
+  transform: scale(0.97);
+}
+
+.icon-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  color: var(--text);
+}
+
+.zoom-slider {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transform: translateY(-50%);
+}
+
+.zoom-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.zoom-range {
+  width: 112px;
+  height: 16px;
+  accent-color: var(--text);
+  cursor: pointer;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  margin: 44px -48px;
+}
+
+.stage-status {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.stage-status p {
+  margin: 0;
+  padding: 24px 32px;
+  border: 1px solid var(--border);
+  background: rgba(19, 19, 22, 0.82);
+  color: var(--text-muted);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.sidebar {
+  z-index: 30;
+  display: flex;
+  width: var(--sidebar-width);
+  height: 100vh;
+  flex: 0 0 var(--sidebar-width);
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.avatar-box {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid var(--text);
+  background: var(--surface-high);
+  color: var(--text);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.sidebar-header h2,
+.token-card h3 {
+  margin: 0;
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.sidebar-header h2 {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.sidebar-header p,
+.token-card p {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.sidebar-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-tab {
+  display: flex;
+  min-height: 58px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-color: var(--border);
+  border-top: 0;
+  border-left: 0;
+  color: var(--text-soft);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.sidebar-tab:nth-child(3n) {
+  border-right: 0;
+}
+
+.sidebar-tab:hover {
+  background: var(--surface-higher);
+  color: var(--text);
+}
+
+.sidebar-tab-active {
+  border-bottom: 2px solid var(--primary);
+  background: var(--surface-raised);
+  color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 163, 255, 0.25);
+}
+
+.tab-icon {
+  font-size: 14px;
+}
+
+.token-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.token-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--text);
+  background: var(--surface);
+}
+
+.token-card + .token-card {
+  margin-top: 16px;
+}
+
+.token-card-enemy {
+  border-color: var(--border);
+  opacity: 0.82;
+}
+
+.token-card-enemy:hover {
+  opacity: 1;
+}
+
+.token-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.token-card h3 {
+  display: block;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.token-card strong {
+  white-space: nowrap;
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.stat-primary {
+  color: var(--primary);
+  text-shadow: 0 0 4px rgba(0, 163, 255, 0.4);
+}
+
+.stat-danger {
+  color: var(--danger);
+}
+
+.token-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+  margin: 0;
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.token-stats div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.token-stats dt {
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.token-stats dd {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-action {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .stage {
+    min-height: 55vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--text);
+  }
+
+  .sidebar {
+    width: 100%;
+    height: 45vh;
+    flex-basis: 45vh;
+    border-left: 0;
+  }
+
+  .turn-tracker {
+    top: 12px;
+    gap: 8px;
+    max-width: calc(100% - 24px);
+    overflow-x: auto;
+  }
+
+  .stage-status p {
+    padding: 18px 20px;
+    font-size: 11px;
+  }
 }
