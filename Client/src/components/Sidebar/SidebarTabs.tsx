@@ -35,6 +35,7 @@ export function SidebarTabs({ activeTab, onTabChange }: SidebarTabsProps) {
           onClick={() => onTabChange(tab.label)}
         >
           <img className="tab-icon" src={tab.icon} alt="" aria-hidden="true" />
+          <span className="tab-label">{tab.label}</span>
         </button>
       ))}
     </nav>
