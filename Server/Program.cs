@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IUserRepository,UserRepository>();
+builder.Services.AddScoped<INotesRepository,NotesRepository>();
 builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
 builder.Services.AddScoped<IDiceService,DiceService>();
 
@@ -30,7 +31,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
            ValidateLifetime = true,
            ValidateIssuerSigningKey = true,
            ValidIssuer = builder.Configuration["JWT:Issuer"],
-           ValidAudience = builder.Configuration["JWT:Audiance"],
+           ValidAudience = builder.Configuration["JWT:Audience"],
            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!))
        }; 
     });
