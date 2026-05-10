@@ -5,6 +5,5 @@ namespace Server.Models;
 
 public class NoteDto
 {
-    [Required]
     public string Content { get; set; }
 }
