@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import GridBg from "../GridBG";
+import GridBg from "./GridBG";
 import { TurnTracker } from "./TurnTracker";
 import { ZoomSlider } from "./ZoomSlider";
 

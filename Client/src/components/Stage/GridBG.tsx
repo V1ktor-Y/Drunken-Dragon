@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { MapBackground } from "./Stage/Stage";
+import type { MapBackground } from "./Stage";
 import GridItems from "./GridItems";
 
 interface Props {

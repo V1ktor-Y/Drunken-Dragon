@@ -1,6 +1,6 @@
-import imgA from "../assets/ball.jpg";
-import imgB from "../assets/hornet.jpg";
-import imgC from "../assets/joy.jpg";
+import imgA from "../../assets/ball.jpg";
+import imgB from "../../assets/hornet.jpg";
+import imgC from "../../assets/joy.jpg";
 import PlayAreaToken from "./PlayAreaToken";
 
 interface Props {
