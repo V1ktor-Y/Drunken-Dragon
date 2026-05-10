@@ -24,6 +24,7 @@
     <Folder Include="Services/" />
     <Folder Include="wwwroot/" />
     <Folder Include="wwwroot/uploads/" />
+    <Folder Include="wwwroot/uploads/icons/" />
     <Folder Include="wwwroot/uploads/maps/" />
   </ItemGroup>
 

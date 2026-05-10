@@ -507,4 +507,6 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-Server/wwwroot/uploads/**/*
+Server/wwwroot/uploads/icons/*
+Server/wwwroot/uploads/maps/*
+!wwwroot/uploads/icons/default.jpg

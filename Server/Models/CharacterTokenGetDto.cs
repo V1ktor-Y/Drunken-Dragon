@@ -1,0 +1,14 @@
+using System;
+
+namespace Server.Models;
+
+public class CharacterTokenGetDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
+    public string Class { get; set; } = string.Empty;
+    public int MaxHp { get; set; }
+    public int Speed { get; set; }
+    public int ArmorClass { get; set; }
+}
