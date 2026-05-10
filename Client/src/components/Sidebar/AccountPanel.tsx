@@ -5,6 +5,7 @@ type AccountMode = "register" | "login" | "loggedIn";
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
 const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
 const AUTH_NAME_STORAGE_KEY = "drunkenDragon.username";
+const AUTH_CHANGED_EVENT = "drunkenDragon:authChanged";
 
 type AuthResponse = {
   username: string;
@@ -92,6 +93,7 @@ export function AccountPanel() {
     setLoggedInName(auth.username);
     setMode("loggedIn");
     setPassword("");
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   };
 
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -143,6 +145,7 @@ export function AccountPanel() {
     setLoggedInName("");
     setMode("login");
     setStatus("");
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   };
 
   if (mode === "loggedIn") {

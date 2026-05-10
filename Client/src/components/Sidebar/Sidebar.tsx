@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { AccountPanel } from "./AccountPanel";
+import { MapPanel } from "./MapPanel";
 import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
 import { TokenList } from "./TokenList";
+import type { GameFieldMap, StoredMap } from "../../types/maps";
 
 const DEFAULT_SIDEBAR_WIDTH = 320;
 const MIN_SIDEBAR_WIDTH = 240;
@@ -16,7 +18,19 @@ function clampSidebarWidth(width: number) {
   return Math.max(MIN_SIDEBAR_WIDTH, Math.min(width, getMaxSidebarWidth()));
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  gameFieldMaps: GameFieldMap[];
+  onAddMapToField: (map: StoredMap, src: string) => void;
+  onRemoveMapFromField: (mapId: number) => void;
+  onUpdateGameFieldMap: (mapId: number, updates: Partial<GameFieldMap>) => void;
+}
+
+export function Sidebar({
+  gameFieldMaps,
+  onAddMapToField,
+  onRemoveMapFromField,
+  onUpdateGameFieldMap,
+}: SidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [activeTab, setActiveTab] = useState<SidebarTab>("Tokens");
   const [dragStart, setDragStart] = useState<{
@@ -61,6 +75,14 @@ export function Sidebar() {
       <SidebarTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="sidebar-panel" role="tabpanel" aria-label={activeTab}>
         {activeTab === "Tokens" && <TokenList />}
+        {activeTab === "Map" && (
+          <MapPanel
+            gameFieldMaps={gameFieldMaps}
+            onAddMapToField={onAddMapToField}
+            onRemoveMapFromField={onRemoveMapFromField}
+            onUpdateGameFieldMap={onUpdateGameFieldMap}
+          />
+        )}
         {activeTab === "Account" && <AccountPanel />}
       </div>
       {activeTab === "Tokens" && (
