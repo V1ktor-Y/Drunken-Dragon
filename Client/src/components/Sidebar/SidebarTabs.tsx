@@ -1,4 +1,18 @@
-const tabs = ["Tokens", "Dice", "Encounter", "Map", "Notes", "Account"];
+import accountIcon from "../../assets/account.svg";
+import diceIcon from "../../assets/dice.svg";
+import encounterIcon from "../../assets/encounter.svg";
+import mapIcon from "../../assets/map.svg";
+import notesIcon from "../../assets/notes.svg";
+import tokensIcon from "../../assets/tokens.svg";
+
+const tabs = [
+  { label: "Tokens", icon: tokensIcon },
+  { label: "Dice", icon: diceIcon },
+  { label: "Encounter", icon: encounterIcon },
+  { label: "Map", icon: mapIcon },
+  { label: "Notes", icon: notesIcon },
+  { label: "Account", icon: accountIcon },
+];
 
 export function SidebarTabs() {
   return (
@@ -6,13 +20,11 @@ export function SidebarTabs() {
       {tabs.map((tab, index) => (
         <button
           className={`sidebar-tab ${index === 0 ? "sidebar-tab-active" : ""}`}
-          key={tab}
+          key={tab.label}
           type="button"
+          aria-label={tab.label}
         >
-          <span className="tab-icon" aria-hidden="true">
-            {tab.slice(0, 1)}
-          </span>
-          <span>{tab}</span>
+          <img className="tab-icon" src={tab.icon} alt="" aria-hidden="true" />
         </button>
       ))}
     </nav>
