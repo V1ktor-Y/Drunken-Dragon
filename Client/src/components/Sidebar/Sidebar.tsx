@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { AccountPanel } from "./AccountPanel";
+import { DicePanel } from "./DicePanel";
+import { NotesPanel } from "./NotesPanel";
 import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
 import { TokenList } from "./TokenList";
 
-const DEFAULT_SIDEBAR_WIDTH = 320;
-const MIN_SIDEBAR_WIDTH = 240;
+const DEFAULT_SIDEBAR_WIDTH = 460;
+const MIN_SIDEBAR_WIDTH = 380;
 const MAX_SIDEBAR_WIDTH = 560;
 const MIN_STAGE_WIDTH = 320;
 
@@ -61,6 +63,8 @@ export function Sidebar() {
       <SidebarTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="sidebar-panel" role="tabpanel" aria-label={activeTab}>
         {activeTab === "Tokens" && <TokenList />}
+        {activeTab === "Dice" && <DicePanel />}
+        {activeTab === "Notes" && <NotesPanel />}
         {activeTab === "Account" && <AccountPanel />}
       </div>
       {activeTab === "Tokens" && (
