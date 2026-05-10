@@ -87,7 +87,11 @@ export function DicePanel() {
             type="number"
             min="1"
             value={customDie}
-            onChange={(event) => setCustomDie(Math.max(1, Number(event.currentTarget.value)))}
+            onChange={(event) => {
+              const newValue = Math.max(1, Number(event.currentTarget.value));
+              setCustomDie(newValue);
+              setSelectedDie(newValue);
+            }}
             onFocus={handleSelectCustomDie}
           />
         </label>
