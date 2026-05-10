@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<Note> Notes { get; set; }
+    public DbSet<Map> Maps { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -36,5 +37,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Note>()
             .HasIndex(n => n.UserId)
             .IsUnique();
+
+        modelBuilder.Entity<Map>()
+            .HasOne(m => m.User)
+            .WithMany(u => u.Maps)
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -11,4 +11,5 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
 
     public Note? Note {get;set;}
+    public List<Map> Maps {get;set;} = new();
 }

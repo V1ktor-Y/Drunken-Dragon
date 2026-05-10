@@ -23,6 +23,9 @@
     <Folder Include="Controllers/" />
     <Folder Include="Data/" />
     <Folder Include="Services/" />
+    <Folder Include="wwwroot/" />
+    <Folder Include="wwwroot/uploads/" />
+    <Folder Include="wwwroot/uploads/maps/" />
   </ItemGroup>
 
 </Project>
