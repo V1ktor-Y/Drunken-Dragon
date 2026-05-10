@@ -11,6 +11,34 @@ type AuthResponse = {
   token: string;
 };
 
+function parseErrorMessage(text: string, fallback: string) {
+  if (!text) return fallback;
+
+  try {
+    const error = JSON.parse(text) as unknown;
+
+    if (error && typeof error === "object") {
+      if ("errors" in error && error.errors && typeof error.errors === "object") {
+        const messages = Object.values(error.errors)
+          .flatMap((value) => (Array.isArray(value) ? value : [value]))
+          .filter((value): value is string => typeof value === "string");
+
+        if (messages.length > 0) {
+          return messages.join(" ");
+        }
+      }
+
+      if ("title" in error && typeof error.title === "string") {
+        return error.title;
+      }
+    }
+  } catch {
+    return text;
+  }
+
+  return fallback;
+}
+
 async function postAuth(path: "register" | "login", body: object) {
   const response = await fetch(`${API_BASE_URL}/api/Auth/${path}`, {
     method: "POST",
@@ -23,7 +51,7 @@ async function postAuth(path: "register" | "login", body: object) {
   const text = await response.text();
 
   if (!response.ok) {
-    throw new Error(text || `Failed to ${path}`);
+    throw new Error(parseErrorMessage(text, `Failed to ${path}`));
   }
 
   if (!text) return null;
