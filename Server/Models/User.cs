@@ -12,4 +12,5 @@ public class User
 
     public Note? Note {get;set;}
     public List<Map> Maps {get;set;} = new();
+    public List<CharacterToken> CharacterTokens { get; set; } = new();
 }
