@@ -272,6 +272,7 @@ button {
 }
 
 .sidebar {
+  position: relative;
   z-index: 30;
   display: flex;
   width: var(--sidebar-width);
@@ -280,6 +281,37 @@ button {
   flex-direction: column;
   border-left: 1px solid var(--border);
   background: var(--surface);
+}
+
+.sidebar-resizing {
+  user-select: none;
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.sidebar-resize-handle::after {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 2px;
+  height: 100%;
+  content: "";
+  background: transparent;
+  transition: background 120ms ease;
+}
+
+.sidebar-resize-handle:hover::after,
+.sidebar-resizing .sidebar-resize-handle::after {
+  background: var(--primary);
 }
 
 .sidebar-header {
@@ -480,6 +512,10 @@ button {
     height: 45vh;
     flex-basis: 45vh;
     border-left: 0;
+  }
+
+  .sidebar-resize-handle {
+    display: none;
   }
 
   .turn-tracker {

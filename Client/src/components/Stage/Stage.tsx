@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GridBg from "../GridBG";
+import GridBg from "./GridBG";
 import { TurnTracker } from "./TurnTracker";
 import { ZoomSlider } from "./ZoomSlider";
 
@@ -26,9 +26,6 @@ export function Stage() {
         onZoomOut={() => updateGridSize(gridSize - GRID_STEP)}
         onZoomChange={updateGridSize}
       />
-      <div className="stage-status" aria-hidden="true">
-        <p>Awaiting Tactical Data...</p>
-      </div>
     </main>
   );
 }
