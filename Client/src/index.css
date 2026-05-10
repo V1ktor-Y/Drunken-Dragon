@@ -537,6 +537,154 @@ button {
   padding: 24px;
 }
 
+.maps-panel {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.maps-list {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 30px;
+  overflow-y: auto;
+  padding: 30px 20px;
+}
+
+.map-card {
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.map-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.map-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.map-field-action {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px;
+  font-size: 11px;
+}
+
+.map-field-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.map-field-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-muted);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.map-field-control div {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 46px) 24px;
+  border: 1px solid var(--border);
+}
+
+.map-field-control button,
+.map-field-control input {
+  min-width: 0;
+  min-height: 26px;
+  border: 0;
+  background: var(--surface);
+  color: var(--text);
+  text-align: center;
+}
+
+.map-field-control button {
+  cursor: pointer;
+}
+
+.map-field-control button:hover {
+  background: var(--surface-higher);
+}
+
+.map-field-control input {
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  appearance: textfield;
+  outline: 0;
+  padding: 0 4px;
+}
+
+.map-field-control input::-webkit-outer-spin-button,
+.map-field-control input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.maps-empty,
+.maps-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.maps-empty {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  padding: 20px;
+  text-align: center;
+}
+
+.maps-status {
+  padding: 0 20px 12px;
+}
+
+.maps-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.maps-add-button {
+  min-width: 150px;
+}
+
+.maps-add-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.maps-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .account-panel {
   display: flex;
   min-height: 100%;

@@ -21,7 +21,7 @@ namespace Server.Controllers
             _env = env;
         }
 
-        [HttpPost("upload")]
+        [HttpPost]
         public async Task<IActionResult> UploadMap([FromForm] IFormFile file, [FromForm] string name)
         {
             if (file == null || file.Length == 0) return BadRequest("No file selected.");

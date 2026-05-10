@@ -1,14 +1,14 @@
 import { useState } from "react";
-import type { MapBackground } from "./Stage";
 import GridItems from "./GridItems";
+import type { GameFieldMap } from "../../types/maps";
 
 interface Props {
   gridSize: number;
-  mapBackground: MapBackground | null;
+  gameFieldMaps: GameFieldMap[];
   onGridSizeChange: (gridSize: number) => void;
 }
 
-function GridBg({ gridSize, mapBackground, onGridSizeChange }: Props) {
+function GridBg({ gridSize, gameFieldMaps, onGridSizeChange }: Props) {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
@@ -63,30 +63,35 @@ function GridBg({ gridSize, mapBackground, onGridSizeChange }: Props) {
           transform: `translate(${pan.x}px, ${pan.y}px)`,
         }}
       >
-        {mapBackground && (
-          <>
+        {gameFieldMaps.map((gameFieldMap) => (
+          <div className="map-field-layer" key={gameFieldMap.id}>
             <img
               className="map-background"
-              src={mapBackground.src}
-              alt={mapBackground.name}
+              src={gameFieldMap.src}
+              alt={gameFieldMap.name}
               draggable={false}
               style={{
-                width: `${mapBackground.widthCells * gridSize}px`,
-                height: `${mapBackground.heightCells * gridSize}px`,
-                opacity: mapBackground.opacity,
+                width: `${gameFieldMap.widthCells * gridSize}px`,
+                height: `${gameFieldMap.heightCells * gridSize}px`,
+                transform: `translate(${gameFieldMap.gridX * gridSize}px, ${
+                  gameFieldMap.gridY * gridSize
+                }px)`,
               }}
             />
             <div
               className="map-grid-overlay"
               aria-hidden="true"
               style={{
-                width: `${mapBackground.widthCells * gridSize}px`,
-                height: `${mapBackground.heightCells * gridSize}px`,
+                width: `${gameFieldMap.widthCells * gridSize}px`,
+                height: `${gameFieldMap.heightCells * gridSize}px`,
                 backgroundSize: `${gridSize}px ${gridSize}px`,
+                transform: `translate(${gameFieldMap.gridX * gridSize}px, ${
+                  gameFieldMap.gridY * gridSize
+                }px)`,
               }}
             />
-          </>
-        )}
+          </div>
+        ))}
         <GridItems gridSize={gridSize} panX={pan.x} panY={pan.y}></GridItems>
       </div>
     </div>
