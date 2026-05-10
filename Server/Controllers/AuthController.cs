@@ -25,11 +25,11 @@ namespace Server.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserDto login)
+        public async Task<IActionResult> Login([FromBody] LoginDto login)
         {
-            var user = await _repo.GetUserByUsernameAsync(login.Username);
+            var user = await _repo.GetUserByEmailAsync(login.Email);
 
-            if (user == null) return Unauthorized("Invalid Username!");
+            if (user == null) return Unauthorized("No such account!");
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, login.Password);
 
@@ -59,20 +59,27 @@ namespace Server.Controllers
             });
         }
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserDto loginDto)
+        public async Task<ActionResult<User>> Register(RegisterDto registerDto)
         {
-            if (loginDto == null)
-                return BadRequest("Login must contain username and password.");
+            if (registerDto == null)
+                return BadRequest("Login must contain username, email and password.");
 
-            if (await _repo.GetUserByUsernameAsync(loginDto.Username) != null)
+            if (await _repo.GetUserByUsernameAsync(registerDto.Username) != null)
                 return BadRequest("Username is taken");
+
+            if (string.IsNullOrWhiteSpace(registerDto.Email))
+                return BadRequest("Email is required.");
+
+            if (await _repo.EmailExistsAsync(registerDto.Email))
+                return BadRequest("This email is already registered to another account.");
 
             var user = new User
             {
-                Username = loginDto.Username,
+                Username = registerDto.Username,
+                Email = registerDto.Email.ToLower()
             };
 
-            user.PasswordHash = _passwordHasher.HashPassword(user, loginDto.Password);
+            user.PasswordHash = _passwordHasher.HashPassword(user, registerDto.Password);
 
             _repo.Add(user);
 
