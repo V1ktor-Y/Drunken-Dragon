@@ -16,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository,UserRepository>();
 builder.Services.AddScoped<INotesRepository,NotesRepository>();
+builder.Services.AddScoped<IMapRepository,MapRepository>();
 builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
 builder.Services.AddScoped<IDiceService,DiceService>();
 
@@ -51,6 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseStaticFiles();
 
 using (var scope = app.Services.CreateScope())
 {
