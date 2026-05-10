@@ -132,18 +132,27 @@ export function NotesPanel() {
           placeholder="Write encounter notes..."
           aria-label="Note content"
         />
-        <button
-          className="notes-save-button"
-          type="button"
-          onClick={handleSave}
-          disabled={isLoading || isSaving || !hasUnsavedChanges}
-        >
-          {isSaving ? "Saving..." : "Save Note"}
-        </button>
+        <div className="notes-actions">
+          <span
+            className="notes-info"
+            tabIndex={0}
+            aria-label="One saved note is kept per account. Saving replaces the previous note."
+          >
+            ?
+            <span className="notes-tooltip" role="tooltip">
+              One saved note is kept per account. Saving replaces the previous note.
+            </span>
+          </span>
+          <button
+            className="notes-save-button"
+            type="button"
+            onClick={handleSave}
+            disabled={isLoading || isSaving || !hasUnsavedChanges}
+          >
+            {isSaving ? "Saving..." : "Save Note"}
+          </button>
+        </div>
       </div>
-      <p className="notes-helper">
-        One saved note is kept per account. Saving replaces the previous note.
-      </p>
       {status && <p className="notes-status">{status}</p>}
     </section>
   );
