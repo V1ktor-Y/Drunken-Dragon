@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AccountPanel } from "./AccountPanel";
 import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
 import { TokenList } from "./TokenList";
 
@@ -60,6 +61,7 @@ export function Sidebar() {
       <SidebarTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="sidebar-panel" role="tabpanel" aria-label={activeTab}>
         {activeTab === "Tokens" && <TokenList />}
+        {activeTab === "Account" && <AccountPanel />}
       </div>
       {activeTab === "Tokens" && (
         <div className="sidebar-footer">
