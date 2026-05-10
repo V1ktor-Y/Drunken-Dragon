@@ -18,7 +18,9 @@ export type MapBackground = {
 
 export function Stage() {
   const [gridSize, setGridSize] = useState(100);
-  const [mapBackground, setMapBackground] = useState<MapBackground | null>(null);
+  const [mapBackground, setMapBackground] = useState<MapBackground | null>(
+    null,
+  );
   const mapBackgroundUrlRef = useRef<string | null>(null);
 
   const updateGridSize = (nextGridSize: number) => {
@@ -54,7 +56,10 @@ export function Stage() {
 
     image.onload = () => {
       const aspectRatio = image.naturalHeight / image.naturalWidth || 1;
-      const heightCells = Math.max(1, Math.round(DEFAULT_MAP_WIDTH_CELLS * aspectRatio));
+      const heightCells = Math.max(
+        1,
+        Math.round(DEFAULT_MAP_WIDTH_CELLS * aspectRatio),
+      );
 
       if (mapBackgroundUrlRef.current) {
         URL.revokeObjectURL(mapBackgroundUrlRef.current);
@@ -147,11 +152,17 @@ export function Stage() {
                 step="0.05"
                 value={mapBackground.opacity}
                 onChange={(event) =>
-                  updateMapBackground({ opacity: Number(event.currentTarget.value) })
+                  updateMapBackground({
+                    opacity: Number(event.currentTarget.value),
+                  })
                 }
               />
             </label>
-            <button className="map-remove-button" type="button" onClick={handleRemoveMap}>
+            <button
+              className="map-remove-button"
+              type="button"
+              onClick={handleRemoveMap}
+            >
               Remove
             </button>
           </>
@@ -165,11 +176,6 @@ export function Stage() {
         onZoomOut={() => updateGridSize(gridSize - GRID_STEP)}
         onZoomChange={updateGridSize}
       />
-      {!mapBackground && (
-        <div className="stage-status" aria-hidden="true">
-          <p>Awaiting Tactical Data...</p>
-        </div>
-      )}
     </main>
   );
 }
