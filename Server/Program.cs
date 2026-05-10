@@ -20,6 +20,18 @@ builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
 builder.Services.AddScoped<IDiceService,DiceService>();
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ClientApp", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddOpenApi();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -56,9 +68,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseCors("ClientApp");
 app.UseAuthentication(); 
 app.UseAuthorization();  
 
 app.MapControllers();
 app.Run();
-

@@ -3,6 +3,13 @@ import { useState } from "react";
 type AccountMode = "register" | "login" | "loggedIn";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
+const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
+const AUTH_NAME_STORAGE_KEY = "drunkenDragon.username";
+
+type AuthResponse = {
+  username: string;
+  token: string;
+};
 
 async function postAuth(path: "register" | "login", body: object) {
   const response = await fetch(`${API_BASE_URL}/api/Auth/${path}`, {
@@ -13,12 +20,12 @@ async function postAuth(path: "register" | "login", body: object) {
     body: JSON.stringify(body),
   });
 
+  const text = await response.text();
+
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `Failed to ${path}`);
+    throw new Error(text || `Failed to ${path}`);
   }
 
-  const text = await response.text();
   if (!text) return null;
 
   try {
@@ -28,14 +35,36 @@ async function postAuth(path: "register" | "login", body: object) {
   }
 }
 
+function getAuthResponse(result: unknown): AuthResponse | null {
+  if (!result || typeof result !== "object") return null;
+  if (!("username" in result) || !("token" in result)) return null;
+
+  return {
+    username: String(result.username),
+    token: String(result.token),
+  };
+}
+
 export function AccountPanel() {
-  const [mode, setMode] = useState<AccountMode>("register");
+  const [mode, setMode] = useState<AccountMode>(() =>
+    localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ? "loggedIn" : "register",
+  );
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loggedInName, setLoggedInName] = useState("");
+  const [loggedInName, setLoggedInName] = useState(
+    () => localStorage.getItem(AUTH_NAME_STORAGE_KEY) ?? "",
+  );
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const completeLogin = (auth: AuthResponse) => {
+    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, auth.token);
+    localStorage.setItem(AUTH_NAME_STORAGE_KEY, auth.username);
+    setLoggedInName(auth.username);
+    setMode("loggedIn");
+    setPassword("");
+  };
 
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -44,9 +73,14 @@ export function AccountPanel() {
 
     try {
       await postAuth("register", { email, username, password });
-      setLoggedInName(username || email);
-      setMode("loggedIn");
-      setPassword("");
+      const result = await postAuth("login", { email, password });
+      const auth = getAuthResponse(result);
+
+      if (!auth) {
+        throw new Error("Registration succeeded, but login did not return a token.");
+      }
+
+      completeLogin(auth);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Registration failed");
     } finally {
@@ -61,14 +95,13 @@ export function AccountPanel() {
 
     try {
       const result = await postAuth("login", { email, password });
-      const responseName =
-        result && typeof result === "object" && "username" in result
-          ? String(result.username)
-          : "";
+      const auth = getAuthResponse(result);
 
-      setLoggedInName(responseName || email);
-      setMode("loggedIn");
-      setPassword("");
+      if (!auth) {
+        throw new Error("Login did not return a token.");
+      }
+
+      completeLogin(auth);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Login failed");
     } finally {
@@ -77,6 +110,8 @@ export function AccountPanel() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(AUTH_NAME_STORAGE_KEY);
     setLoggedInName("");
     setMode("login");
     setStatus("");
@@ -104,12 +139,12 @@ export function AccountPanel() {
         <form className="account-form account-form-login" onSubmit={handleLogin}>
           <h2>Log In</h2>
           <label className="account-field">
-            <span>Email or Username</span>
+            <span>Email</span>
             <input
-              type="text"
+              type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              autoComplete="username"
+              autoComplete="email"
               required
             />
           </label>
