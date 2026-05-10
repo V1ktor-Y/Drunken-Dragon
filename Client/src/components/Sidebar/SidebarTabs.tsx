@@ -5,7 +5,9 @@ import mapIcon from "../../assets/map.svg";
 import notesIcon from "../../assets/notes.svg";
 import tokensIcon from "../../assets/tokens.svg";
 
-const tabs = [
+export type SidebarTab = "Tokens" | "Dice" | "Encounter" | "Map" | "Notes" | "Account";
+
+const tabs: { label: SidebarTab; icon: string }[] = [
   { label: "Tokens", icon: tokensIcon },
   { label: "Dice", icon: diceIcon },
   { label: "Encounter", icon: encounterIcon },
@@ -14,15 +16,23 @@ const tabs = [
   { label: "Account", icon: accountIcon },
 ];
 
-export function SidebarTabs() {
+interface SidebarTabsProps {
+  activeTab: SidebarTab;
+  onTabChange: (tab: SidebarTab) => void;
+}
+
+export function SidebarTabs({ activeTab, onTabChange }: SidebarTabsProps) {
   return (
-    <nav className="sidebar-tabs" aria-label="Sidebar sections">
-      {tabs.map((tab, index) => (
+    <nav className="sidebar-tabs" aria-label="Sidebar sections" role="tablist">
+      {tabs.map((tab) => (
         <button
-          className={`sidebar-tab ${index === 0 ? "sidebar-tab-active" : ""}`}
+          className={`sidebar-tab ${tab.label === activeTab ? "sidebar-tab-active" : ""}`}
           key={tab.label}
           type="button"
+          role="tab"
           aria-label={tab.label}
+          aria-selected={tab.label === activeTab}
+          onClick={() => onTabChange(tab.label)}
         >
           <img className="tab-icon" src={tab.icon} alt="" aria-hidden="true" />
         </button>

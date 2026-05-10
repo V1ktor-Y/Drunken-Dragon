@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SidebarTabs } from "./SidebarTabs";
+import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
 import { TokenList } from "./TokenList";
 
 const DEFAULT_SIDEBAR_WIDTH = 320;
@@ -17,6 +17,7 @@ function clampSidebarWidth(width: number) {
 
 export function Sidebar() {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [activeTab, setActiveTab] = useState<SidebarTab>("Tokens");
   const [dragStart, setDragStart] = useState<{
     pointerX: number;
     sidebarWidth: number;
@@ -56,13 +57,17 @@ export function Sidebar() {
         onPointerUp={handleResizePointerUp}
         onPointerCancel={handleResizePointerUp}
       />
-      <SidebarTabs />
-      <TokenList />
-      <div className="sidebar-footer">
-        <button className="command-button sidebar-action" type="button">
-          + New Encounter
-        </button>
+      <SidebarTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="sidebar-panel" role="tabpanel" aria-label={activeTab}>
+        {activeTab === "Tokens" && <TokenList />}
       </div>
+      {activeTab === "Tokens" && (
+        <div className="sidebar-footer">
+          <button className="command-button sidebar-action" type="button">
+            + New Encounter
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

@@ -25,14 +25,6 @@ export function TurnTracker() {
       <button className="command-button" type="button">
         Next Turn
       </button>
-      <div className="turn-actions">
-        <button className="icon-button" type="button" aria-label="Settings">
-          S
-        </button>
-        <button className="icon-button" type="button" aria-label="Help">
-          ?
-        </button>
-      </div>
     </section>
   );
 }
