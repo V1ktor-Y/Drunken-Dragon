@@ -9,10 +9,10 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
-
     public DbSet<User> Users { get; set; }
     public DbSet<Note> Notes { get; set; }
     public DbSet<Map> Maps { get; set; }
+    public DbSet<CharacterToken> CharacterTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -25,23 +25,29 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
-
-        modelBuilder.Entity<User>()
-        .HasOne(u => u.Note)
-        .WithOne(n => n.User)
-        .HasForeignKey<Note>(n => n.UserId)
-        .OnDelete(DeleteBehavior.Cascade);
+            .HasIndex(u => u.Email)
+            .IsUnique();
 
         modelBuilder.Entity<Note>()
             .HasIndex(n => n.UserId)
             .IsUnique();
 
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Note)
+            .WithOne(n => n.User)
+            .HasForeignKey<Note>(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Map>()
             .HasOne(m => m.User)
             .WithMany(u => u.Maps)
             .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CharacterToken>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.CharacterTokens)
+            .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
