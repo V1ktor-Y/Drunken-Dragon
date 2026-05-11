@@ -93,7 +93,7 @@ export function Sidebar({
       </div>
       {activeTab === "Tokens" && (
         <div className="sidebar-footer">
-          <button className="command-button sidebar-action" type="button">
+          <button className="command-button command-button-primary sidebar-action" type="button">
             + New Encounter
           </button>
         </div>

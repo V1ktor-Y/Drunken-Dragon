@@ -116,7 +116,7 @@ export function TokenCard(props: Props) {
         className="token-toggle-btn"
         onClick={() => setExpanded(!expanded)}
       >
-        {expanded ? "∧" : "∨"}
+        {expanded ? "▲" : "▼"}
       </button>
     </article>
   );
