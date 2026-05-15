@@ -2,14 +2,17 @@ import imgA from "../../assets/ball.jpg";
 import imgB from "../../assets/hornet.jpg";
 import imgC from "../../assets/joy.jpg";
 import PlayAreaToken from "./PlayAreaToken";
+import type { PlacedToken } from "../../types/tokens";
 
 interface Props {
   panX: number;
   panY: number;
   gridSize: number;
+  placedTokens: PlacedToken[];
+  onSelectToken: (tokenId: string) => void;
 }
 
-function GridItems({ gridSize, panX, panY }: Props) {
+function GridItems({ gridSize, panX, panY, placedTokens, onSelectToken }: Props) {
   const gridItemData = [
     {
       id: 0,
@@ -37,7 +40,8 @@ function GridItems({ gridSize, panX, panY }: Props) {
         return (
           <PlayAreaToken
             key={item.id}
-            image_source={item.image_source}
+            imageSource={item.image_source}
+            name={`Token ${item.id + 1}`}
             gridSize={gridSize}
             gridX={item.gridX}
             gridY={item.gridY}
@@ -46,6 +50,20 @@ function GridItems({ gridSize, panX, panY }: Props) {
           ></PlayAreaToken>
         );
       })}
+      {placedTokens.map((token) => (
+        <PlayAreaToken
+          key={token.instanceId}
+          tokenId={token.id}
+          imageSource={token.imageSource}
+          name={token.name}
+          gridSize={gridSize}
+          gridX={token.gridX}
+          gridY={token.gridY}
+          panX={panX}
+          panY={panY}
+          onSelect={onSelectToken}
+        />
+      ))}
     </>
   );
 }

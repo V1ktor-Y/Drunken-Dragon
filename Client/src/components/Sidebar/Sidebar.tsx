@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AccountPanel } from "./AccountPanel";
 import { DicePanel } from "./DicePanel";
 import { EncounterPanel } from "./EncounterPanel";
@@ -7,6 +7,7 @@ import { MapPanel } from "./MapPanel";
 import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
 import { TokenList } from "./TokenList";
 import type { GameFieldMap, StoredMap } from "../../types/maps";
+import type { SidebarToken } from "../../types/tokens";
 
 const DEFAULT_SIDEBAR_WIDTH = 460;
 const MIN_SIDEBAR_WIDTH = 380;
@@ -26,6 +27,9 @@ interface SidebarProps {
   onAddMapToField: (map: StoredMap, src: string) => void;
   onRemoveMapFromField: (mapId: number) => void;
   onUpdateGameFieldMap: (mapId: number, updates: Partial<GameFieldMap>) => void;
+  selectedTokenId: string | null;
+  selectedTokenVersion: number;
+  onTokenUpdate: (token: SidebarToken) => void;
 }
 
 export function Sidebar({
@@ -33,6 +37,9 @@ export function Sidebar({
   onAddMapToField,
   onRemoveMapFromField,
   onUpdateGameFieldMap,
+  selectedTokenId,
+  selectedTokenVersion,
+  onTokenUpdate,
 }: SidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [activeTab, setActiveTab] = useState<SidebarTab>("Tokens");
@@ -40,6 +47,12 @@ export function Sidebar({
     pointerX: number;
     sidebarWidth: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (selectedTokenId) {
+      setActiveTab("Tokens");
+    }
+  }, [selectedTokenId, selectedTokenVersion]);
 
   const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -77,7 +90,13 @@ export function Sidebar({
       />
       <SidebarTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="sidebar-panel" role="tabpanel" aria-label={activeTab}>
-        {activeTab === "Tokens" && <TokenList />}
+        {activeTab === "Tokens" && (
+          <TokenList
+            selectedTokenId={selectedTokenId}
+            selectedTokenVersion={selectedTokenVersion}
+            onTokenUpdate={onTokenUpdate}
+          />
+        )}
         {activeTab === "Dice" && <DicePanel />}
         {activeTab === "Encounter" && <EncounterPanel />}
         {activeTab === "Notes" && <NotesPanel />}
@@ -91,13 +110,6 @@ export function Sidebar({
         )}
         {activeTab === "Account" && <AccountPanel />}
       </div>
-      {activeTab === "Tokens" && (
-        <div className="sidebar-footer">
-          <button className="command-button command-button-primary sidebar-action" type="button">
-            + New Encounter
-          </button>
-        </div>
-      )}
     </aside>
   );
 }

@@ -1,14 +1,30 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { SidebarToken, TokenDropRequestDetail } from "../../types/tokens";
 
-interface Props {
-  name: string;
-  type: string;
-  hp: string;
-  ac: string;
-  speed: string;
-  size: string;
-  init: string;
-  isEnemy: boolean;
+interface Props extends SidebarToken {
+  selectedTokenId: string | null;
+  selectedTokenVersion: number;
+  onTokenUpdate: (token: SidebarToken) => void;
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
+}
+
+function isTokenEditTarget(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest(
+        "input, textarea, select, button, .token-card-avatar, .token-detail-field",
+      ),
+    )
+  );
 }
 
 export function TokenCard(props: Props) {
@@ -21,8 +37,42 @@ export function TokenCard(props: Props) {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
+  const suppressCardClickRef = useRef(false);
+  const dragStartRef = useRef<{
+    pointerId: number;
+    token: SidebarToken;
+    preview: HTMLDivElement | null;
+    origin: DOMRect;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
-  const handleAvatarClick = () => {
+  useEffect(() => {
+    if (props.selectedTokenId !== props.id) return;
+    setExpanded(true);
+    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [props.id, props.selectedTokenId, props.selectedTokenVersion]);
+
+  useEffect(() => {
+    if (!expanded) return;
+
+    const handleDocumentPointerDown = (event: PointerEvent) => {
+      if (isTokenEditTarget(event.target)) return;
+      setExpanded(false);
+    };
+
+    document.addEventListener("pointerdown", handleDocumentPointerDown);
+    return () => document.removeEventListener("pointerdown", handleDocumentPointerDown);
+  }, [expanded]);
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (suppressCardClickRef.current) {
+      event.stopPropagation();
+      suppressCardClickRef.current = false;
+      return;
+    }
+
     if (expanded) {
       fileInputRef.current?.click();
     }
@@ -33,6 +83,123 @@ export function TokenCard(props: Props) {
     if (file) {
       const url = URL.createObjectURL(file);
       setAvatarPreview(url);
+      props.onTokenUpdate({
+        ...getCurrentToken(),
+        imageSource: url,
+      });
+    }
+  };
+
+  const getCurrentToken = (): SidebarToken => ({
+    id: props.id,
+    name: localName,
+    type: props.type,
+    hp: localHp,
+    ac: props.ac,
+    speed: localSpeed,
+    size: localSize,
+    init: props.init,
+    isEnemy: props.isEnemy,
+    imageSource: avatarPreview ?? props.imageSource,
+  });
+
+  const movePreview = (preview: HTMLDivElement, clientX: number, clientY: number) => {
+    preview.style.transform = `translate(${clientX - 32}px, ${clientY - 32}px)`;
+  };
+
+  const buildDragPreview = (token: SidebarToken, origin: DOMRect) => {
+    const preview = document.createElement("div");
+    preview.className = "token-drag-preview";
+    preview.textContent = token.imageSource ? "" : getInitials(token.name) || "T";
+    if (token.imageSource) {
+      preview.style.backgroundImage = `url(${token.imageSource})`;
+    }
+    preview.style.transform = `translate(${origin.left}px, ${origin.top}px)`;
+    document.body.appendChild(preview);
+    return preview;
+  };
+
+  const animatePreviewBack = (preview: HTMLDivElement, origin: DOMRect) => {
+    preview.classList.add("token-drag-preview-returning");
+    preview.style.transform = `translate(${origin.left}px, ${origin.top}px)`;
+    window.setTimeout(() => preview.remove(), 180);
+  };
+
+  const handleSave = () => {
+    props.onTokenUpdate(getCurrentToken());
+    setExpanded(false);
+  };
+
+  const handleAvatarPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+
+    event.preventDefault();
+    const origin = event.currentTarget.getBoundingClientRect();
+    const token = getCurrentToken();
+
+    dragStartRef.current = {
+      pointerId: event.pointerId,
+      token,
+      preview: null,
+      origin,
+      startX: event.clientX,
+      startY: event.clientY,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleAvatarPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragStartRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    if (!dragState.preview) {
+      const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
+      if (distance < 4) return;
+      dragState.preview = buildDragPreview(dragState.token, dragState.origin);
+      suppressCardClickRef.current = true;
+    }
+
+    movePreview(dragState.preview, event.clientX, event.clientY);
+  };
+
+  const handleAvatarPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragStartRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    dragStartRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    if (!dragState.preview) return;
+
+    const dropEvent = new CustomEvent<TokenDropRequestDetail>("drunken-dragon-token-drop", {
+      cancelable: true,
+      detail: {
+        token: dragState.token,
+        clientX: event.clientX,
+        clientY: event.clientY,
+      },
+    });
+    const wasPlaced = !window.dispatchEvent(dropEvent);
+
+    if (wasPlaced) {
+      dragState.preview.remove();
+      return;
+    }
+
+    animatePreviewBack(dragState.preview, dragState.origin);
+  };
+
+  const handleCardClick = () => {
+    if (suppressCardClickRef.current) {
+      suppressCardClickRef.current = false;
+      return;
+    }
+
+    if (!expanded) {
+      setExpanded(true);
     }
   };
 
@@ -41,15 +208,24 @@ export function TokenCard(props: Props) {
   const currentHp = parseInt(currentHpStr, 10) || 0;
   const maxHp = parseInt(maxHpStr, 10) || 1;
   const hpPercent = Math.max(0, Math.min(100, (currentHp / maxHp) * 100));
+  const avatarImageSource = avatarPreview ?? props.imageSource;
 
   return (
-    <article className={`token-card ${props.isEnemy ? "token-card-enemy" : ""}`}>
+    <article
+      ref={cardRef}
+      className={`token-card ${props.isEnemy ? "token-card-enemy" : ""}`}
+      onClick={handleCardClick}
+    >
       <div className="token-card-main">
         <div 
           className="token-card-avatar" 
-          style={avatarPreview ? { backgroundImage: `url(${avatarPreview})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: expanded ? 'pointer' : 'default' } : { cursor: expanded ? 'pointer' : 'default' }}
+          onPointerDown={handleAvatarPointerDown}
+          onPointerMove={handleAvatarPointerMove}
+          onPointerUp={handleAvatarPointerUp}
+          onPointerCancel={handleAvatarPointerUp}
+          style={avatarImageSource ? { backgroundImage: `url(${avatarImageSource})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: "grab" } : { cursor: "grab" }}
           onClick={handleAvatarClick}
-          title={expanded ? "Click to change picture" : undefined}
+          title={expanded ? "Drag to map or click to change picture" : "Drag token to the map"}
         >
           <input 
             type="file" 
@@ -105,7 +281,7 @@ export function TokenCard(props: Props) {
               </label>
               <textarea className="token-notes" placeholder="Notes..."></textarea>
               <div className="token-actions">
-                <button type="button" className="token-save-btn" onClick={() => setExpanded(false)}>Save Token</button>
+                <button type="button" className="token-save-btn" onClick={handleSave}>Save Token</button>
               </div>
             </div>
           )}
