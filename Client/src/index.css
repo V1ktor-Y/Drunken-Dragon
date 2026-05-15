@@ -604,6 +604,7 @@ button {
 }
 
 .map-card {
+  flex: 0 0 auto;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
@@ -617,11 +618,16 @@ button {
   transform: translateY(-2px);
 }
 
-.map-card img {
+.map-card-preview {
+  overflow: hidden;
+  background: var(--surface-high);
+}
+
+.map-card-preview img {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
+  max-width: 100%;
+  height: auto;
 }
 
 .map-card-actions {
@@ -637,6 +643,28 @@ button {
   min-height: 38px;
   padding: 8px;
   font-size: 11px;
+}
+
+.map-delete-action {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.map-delete-action:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #101112;
+}
+
+.map-delete-action:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.map-delete-action:disabled:hover {
+  border-color: var(--danger);
+  background: transparent;
+  color: var(--danger);
 }
 
 .map-field-controls {

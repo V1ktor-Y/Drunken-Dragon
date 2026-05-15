@@ -112,6 +112,9 @@ export function MapPanel({
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [deletingMapIds, setDeletingMapIds] = useState<Set<number>>(
+    () => new Set(),
+  );
 
   const loadMaps = useCallback(async () => {
     const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
@@ -228,6 +231,61 @@ export function MapPanel({
     }
   };
 
+  const handleDeleteMap = async (map: StoredMap) => {
+    const isLocalMap = map.id < 0 || map.filePath.startsWith("blob:");
+
+    if (isLocalMap) {
+      setMaps((currentMaps) =>
+        currentMaps.filter((currentMap) => currentMap.id !== map.id),
+      );
+      onRemoveMapFromField(map.id);
+      if (map.filePath.startsWith("blob:")) {
+        URL.revokeObjectURL(map.filePath);
+      }
+      setStatus("");
+      return;
+    }
+
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+    if (!token) {
+      setStatus("Log in to delete saved maps.");
+      return;
+    }
+
+    setDeletingMapIds((currentIds) => new Set(currentIds).add(map.id));
+    setStatus("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/Maps/${map.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await parseResponseError(response, "Failed to delete map."),
+        );
+      }
+
+      setMaps((currentMaps) =>
+        currentMaps.filter((currentMap) => currentMap.id !== map.id),
+      );
+      onRemoveMapFromField(map.id);
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Failed to delete map.",
+      );
+    } finally {
+      setDeletingMapIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.delete(map.id);
+        return nextIds;
+      });
+    }
+  };
+
   return (
     <section className="maps-panel" aria-label="Maps">
       <div className="maps-list">
@@ -235,10 +293,13 @@ export function MapPanel({
           const activeMap = gameFieldMaps.find(
             (gameFieldMap) => gameFieldMap.id === map.id,
           );
+          const isDeleting = deletingMapIds.has(map.id);
 
           return (
             <article className="map-card" key={map.id}>
-              <img src={getImageUrl(map.filePath)} alt={map.name} />
+              <div className="map-card-preview">
+                <img src={getImageUrl(map.filePath)} alt={map.name} />
+              </div>
               <div className="map-card-actions">
                 {activeMap ? (
                 <>
@@ -291,6 +352,14 @@ export function MapPanel({
                   Add to game field
                 </button>
               )}
+                <button
+                  className="command-button map-field-action map-delete-action"
+                  type="button"
+                  onClick={() => void handleDeleteMap(map)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
               </div>
             </article>
           );
