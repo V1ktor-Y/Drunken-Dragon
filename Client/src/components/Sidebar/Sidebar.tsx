@@ -7,7 +7,7 @@ import { MapPanel } from "./MapPanel";
 import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
 import { TokenList } from "./TokenList";
 import type { GameFieldMap, StoredMap } from "../../types/maps";
-import type { SidebarToken } from "../../types/tokens";
+import type { PlacedToken, SidebarToken } from "../../types/tokens";
 
 const DEFAULT_SIDEBAR_WIDTH = 460;
 const MIN_SIDEBAR_WIDTH = 380;
@@ -29,7 +29,12 @@ interface SidebarProps {
   onUpdateGameFieldMap: (mapId: number, updates: Partial<GameFieldMap>) => void;
   selectedTokenId: string | null;
   selectedTokenVersion: number;
+  placedTokens: PlacedToken[];
+  encounterTokens: PlacedToken[];
+  activeTokenInstanceId: string | null;
+  onEncounterTokensChange: (tokens: PlacedToken[]) => void;
   onTokenUpdate: (token: SidebarToken) => void;
+  onTokenDelete: (tokenId: string) => void;
 }
 
 export function Sidebar({
@@ -39,7 +44,12 @@ export function Sidebar({
   onUpdateGameFieldMap,
   selectedTokenId,
   selectedTokenVersion,
+  placedTokens,
+  encounterTokens,
+  activeTokenInstanceId,
+  onEncounterTokensChange,
   onTokenUpdate,
+  onTokenDelete,
 }: SidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [activeTab, setActiveTab] = useState<SidebarTab>("Tokens");
@@ -49,9 +59,13 @@ export function Sidebar({
   } | null>(null);
 
   useEffect(() => {
-    if (selectedTokenId) {
+    if (!selectedTokenId) return;
+
+    const tabChangeTimeout = window.setTimeout(() => {
       setActiveTab("Tokens");
-    }
+    }, 0);
+
+    return () => window.clearTimeout(tabChangeTimeout);
   }, [selectedTokenId, selectedTokenVersion]);
 
   const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -95,10 +109,18 @@ export function Sidebar({
             selectedTokenId={selectedTokenId}
             selectedTokenVersion={selectedTokenVersion}
             onTokenUpdate={onTokenUpdate}
+            onTokenDelete={onTokenDelete}
           />
         )}
         {activeTab === "Dice" && <DicePanel />}
-        {activeTab === "Encounter" && <EncounterPanel />}
+        {activeTab === "Encounter" && (
+          <EncounterPanel
+            placedTokens={placedTokens}
+            encounterTokens={encounterTokens}
+            activeTokenInstanceId={activeTokenInstanceId}
+            onEncounterTokensChange={onEncounterTokensChange}
+          />
+        )}
         {activeTab === "Notes" && <NotesPanel />}
         {activeTab === "Map" && (
           <MapPanel

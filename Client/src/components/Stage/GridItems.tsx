@@ -9,10 +9,24 @@ interface Props {
   panY: number;
   gridSize: number;
   placedTokens: PlacedToken[];
+  activeTokenInstanceId: string | null;
   onSelectToken: (tokenId: string) => void;
+  onDeletePlacedToken: (tokenInstanceId: string) => void;
+  onTokenDragStateChange: (isDragging: boolean, clientX?: number) => void;
+  isPointInTrashZone: (clientX: number, clientY: number) => boolean;
 }
 
-function GridItems({ gridSize, panX, panY, placedTokens, onSelectToken }: Props) {
+function GridItems({
+  gridSize,
+  panX,
+  panY,
+  placedTokens,
+  activeTokenInstanceId,
+  onSelectToken,
+  onDeletePlacedToken,
+  onTokenDragStateChange,
+  isPointInTrashZone,
+}: Props) {
   const gridItemData = [
     {
       id: 0,
@@ -53,7 +67,9 @@ function GridItems({ gridSize, panX, panY, placedTokens, onSelectToken }: Props)
       {placedTokens.map((token) => (
         <PlayAreaToken
           key={token.instanceId}
+          tokenInstanceId={token.instanceId}
           tokenId={token.id}
+          isActive={token.instanceId === activeTokenInstanceId}
           imageSource={token.imageSource}
           name={token.name}
           gridSize={gridSize}
@@ -62,6 +78,9 @@ function GridItems({ gridSize, panX, panY, placedTokens, onSelectToken }: Props)
           panX={panX}
           panY={panY}
           onSelect={onSelectToken}
+          onDelete={onDeletePlacedToken}
+          onDragStateChange={onTokenDragStateChange}
+          isPointInTrashZone={isPointInTrashZone}
         />
       ))}
     </>

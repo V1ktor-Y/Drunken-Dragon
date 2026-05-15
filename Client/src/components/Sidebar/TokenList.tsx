@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TokenCard } from "./TokenCard";
-import type { SidebarToken } from "../../types/tokens";
+import type { SidebarToken, TokenCloneCreatedDetail } from "../../types/tokens";
 
 const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
 const TOKEN_STORAGE_KEY = "drunkenDragon.tokens";
@@ -53,13 +53,48 @@ interface TokenListProps {
   selectedTokenId: string | null;
   selectedTokenVersion: number;
   onTokenUpdate: (token: SidebarToken) => void;
+  onTokenDelete: (tokenId: string) => void;
 }
 
-export function TokenList({ selectedTokenId, selectedTokenVersion, onTokenUpdate }: TokenListProps) {
+export function TokenList({
+  selectedTokenId,
+  selectedTokenVersion,
+  onTokenUpdate,
+  onTokenDelete,
+}: TokenListProps) {
   const [isLoggedIn] = useState(() => Boolean(getAuthToken()));
   const [tokens, setTokens] = useState<SidebarToken[]>(() =>
     getStoredTokens() ?? (getAuthToken() ? mockTokens : []),
   );
+  const lastCloneRef = useRef<{ key: string; timestamp: number } | null>(null);
+
+  useEffect(() => {
+    const handleTokenCloned = (event: Event) => {
+      const { token } = (event as CustomEvent<TokenCloneCreatedDetail>).detail;
+      const cloneKey = `${token.sourceTokenId ?? token.id}:${token.name}`;
+      const now = Date.now();
+      const lastClone = lastCloneRef.current;
+
+      if (lastClone && lastClone.key === cloneKey && now - lastClone.timestamp < 150) {
+        return;
+      }
+
+      lastCloneRef.current = { key: cloneKey, timestamp: now };
+
+      setTokens((currentTokens) => {
+        if (currentTokens.some((currentToken) => currentToken.id === token.id)) {
+          return currentTokens;
+        }
+
+        const nextTokens = [token, ...currentTokens];
+        saveStoredTokens(nextTokens);
+        return nextTokens;
+      });
+    };
+
+    window.addEventListener("drunken-dragon-token-cloned", handleTokenCloned);
+    return () => window.removeEventListener("drunken-dragon-token-cloned", handleTokenCloned);
+  }, []);
 
   const handleAddToken = () => {
     const newToken = {
@@ -87,6 +122,13 @@ export function TokenList({ selectedTokenId, selectedTokenVersion, onTokenUpdate
     onTokenUpdate(updatedToken);
   };
 
+  const handleTokenDelete = (tokenId: string) => {
+    const nextTokens = tokens.filter((token) => token.id !== tokenId);
+    setTokens(nextTokens);
+    saveStoredTokens(nextTokens);
+    onTokenDelete(tokenId);
+  };
+
   return (
     <div className="token-list">
       <h2 className="tokens-title">Tokens</h2>
@@ -98,6 +140,7 @@ export function TokenList({ selectedTokenId, selectedTokenVersion, onTokenUpdate
             selectedTokenId={selectedTokenId}
             selectedTokenVersion={selectedTokenVersion}
             onTokenUpdate={handleTokenUpdate}
+            onTokenDelete={handleTokenDelete}
           />
         ))}
       </div>
