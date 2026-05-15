@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AccountPanel } from "./AccountPanel";
 import { DicePanel } from "./DicePanel";
+import { EncounterPanel } from "./EncounterPanel";
 import { NotesPanel } from "./NotesPanel";
 import { MapPanel } from "./MapPanel";
 import { SidebarTabs, type SidebarTab } from "./SidebarTabs";
@@ -78,6 +79,7 @@ export function Sidebar({
       <div className="sidebar-panel" role="tabpanel" aria-label={activeTab}>
         {activeTab === "Tokens" && <TokenList />}
         {activeTab === "Dice" && <DicePanel />}
+        {activeTab === "Encounter" && <EncounterPanel />}
         {activeTab === "Notes" && <NotesPanel />}
         {activeTab === "Map" && (
           <MapPanel
@@ -91,7 +93,7 @@ export function Sidebar({
       </div>
       {activeTab === "Tokens" && (
         <div className="sidebar-footer">
-          <button className="command-button sidebar-action" type="button">
+          <button className="command-button command-button-primary sidebar-action" type="button">
             + New Encounter
           </button>
         </div>
