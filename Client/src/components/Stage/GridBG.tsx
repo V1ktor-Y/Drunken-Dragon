@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import GridItems from "./GridItems";
 import type { GameFieldMap } from "../../types/maps";
+import type { PlacedToken, SidebarToken, TokenDropRequestDetail } from "../../types/tokens";
 
 interface Props {
   gridSize: number;
   gameFieldMaps: GameFieldMap[];
+  placedTokens: PlacedToken[];
   onGridSizeChange: (gridSize: number) => void;
+  onPlaceToken: (token: SidebarToken, gridX: number, gridY: number) => void;
+  onSelectToken: (tokenId: string) => void;
 }
 
-function GridBg({ gridSize, gameFieldMaps, onGridSizeChange }: Props) {
+function GridBg({
+  gridSize,
+  gameFieldMaps,
+  placedTokens,
+  onGridSizeChange,
+  onPlaceToken,
+  onSelectToken,
+}: Props) {
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
@@ -40,8 +52,35 @@ function GridBg({ gridSize, gameFieldMaps, onGridSizeChange }: Props) {
 
     onGridSizeChange(Math.max(20, Math.min(newSize, 300)));
   };
+
+  useEffect(() => {
+    const handleTokenDropRequest = (event: Event) => {
+      const { token, clientX, clientY } = (event as CustomEvent<TokenDropRequestDetail>).detail;
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+
+      const rect = viewport.getBoundingClientRect();
+      const isInsideViewport =
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom;
+
+      if (!isInsideViewport) return;
+
+      const gridX = Math.floor((clientX - rect.left - pan.x) / gridSize);
+      const gridY = Math.floor((clientY - rect.top - pan.y) / gridSize);
+      onPlaceToken(token, gridX, gridY);
+      event.preventDefault();
+    };
+
+    window.addEventListener("drunken-dragon-token-drop", handleTokenDropRequest);
+    return () => window.removeEventListener("drunken-dragon-token-drop", handleTokenDropRequest);
+  }, [gridSize, onPlaceToken, pan.x, pan.y]);
+
   return (
     <div
+      ref={viewportRef}
       className="viewport"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -92,7 +131,13 @@ function GridBg({ gridSize, gameFieldMaps, onGridSizeChange }: Props) {
             />
           </div>
         ))}
-        <GridItems gridSize={gridSize} panX={pan.x} panY={pan.y}></GridItems>
+        <GridItems
+          gridSize={gridSize}
+          panX={pan.x}
+          panY={pan.y}
+          placedTokens={placedTokens}
+          onSelectToken={onSelectToken}
+        ></GridItems>
       </div>
     </div>
   );

@@ -1,14 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TokenCard } from "./TokenCard";
+import type { SidebarToken } from "../../types/tokens";
 
 const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
+const TOKEN_STORAGE_KEY = "drunkenDragon.tokens";
 
 function getAuthToken() {
   return localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
 }
 
+function getStoredTokens() {
+  const storedTokens = localStorage.getItem(TOKEN_STORAGE_KEY);
+  if (!storedTokens) return null;
+
+  try {
+    return JSON.parse(storedTokens) as SidebarToken[];
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredTokens(tokens: SidebarToken[]) {
+  localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
+}
+
 const mockTokens = [
   {
+    id: "mock-valerius",
     name: "VALERIUS",
     type: "PC - PALADIN",
     hp: "84/84",
@@ -19,6 +37,7 @@ const mockTokens = [
     isEnemy: false,
   },
   {
+    id: "mock-goblin-scout",
     name: "GOBLIN SCOUT",
     type: "NPC - HOSTILE",
     hp: "12/15",
@@ -30,24 +49,21 @@ const mockTokens = [
   },
 ];
 
-export function TokenList() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [tokens, setTokens] = useState<typeof mockTokens>([]);
+interface TokenListProps {
+  selectedTokenId: string | null;
+  selectedTokenVersion: number;
+  onTokenUpdate: (token: SidebarToken) => void;
+}
 
-  useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      setIsLoggedIn(true);
-      // TODO: Load tokens from backend. Using mock tokens for now.
-      setTokens(mockTokens);
-    } else {
-      setIsLoggedIn(false);
-      setTokens([]); // Start empty when not logged in
-    }
-  }, []);
+export function TokenList({ selectedTokenId, selectedTokenVersion, onTokenUpdate }: TokenListProps) {
+  const [isLoggedIn] = useState(() => Boolean(getAuthToken()));
+  const [tokens, setTokens] = useState<SidebarToken[]>(() =>
+    getStoredTokens() ?? (getAuthToken() ? mockTokens : []),
+  );
 
   const handleAddToken = () => {
     const newToken = {
+      id: `token-${Date.now()}-${crypto.randomUUID()}`,
       name: "NEW TOKEN",
       type: "CUSTOM",
       hp: "10/10",
@@ -57,7 +73,18 @@ export function TokenList() {
       init: "+0",
       isEnemy: false,
     };
-    setTokens([newToken, ...tokens]);
+    const nextTokens = [newToken, ...tokens];
+    setTokens(nextTokens);
+    saveStoredTokens(nextTokens);
+  };
+
+  const handleTokenUpdate = (updatedToken: SidebarToken) => {
+    const nextTokens = tokens.map((token) =>
+      token.id === updatedToken.id ? updatedToken : token,
+    );
+    setTokens(nextTokens);
+    saveStoredTokens(nextTokens);
+    onTokenUpdate(updatedToken);
   };
 
   return (
@@ -65,7 +92,13 @@ export function TokenList() {
       <h2 className="tokens-title">Tokens</h2>
       <div className="token-list-scrollable">
         {tokens.map((token, index) => (
-          <TokenCard key={`${token.name}-${index}`} {...token} />
+          <TokenCard
+            key={`${token.id}-${index}`}
+            {...token}
+            selectedTokenId={selectedTokenId}
+            selectedTokenVersion={selectedTokenVersion}
+            onTokenUpdate={handleTokenUpdate}
+          />
         ))}
       </div>
       <div style={{ padding: "0 32px 14px", display: "flex", flexDirection: "column", gap: "14px" }}>

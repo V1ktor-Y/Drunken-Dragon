@@ -5,14 +5,25 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
 const API_ORIGIN = API_BASE_URL.replace(/\/+$/, "");
 const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
 const AUTH_CHANGED_EVENT = "drunkenDragon:authChanged";
+const LOCAL_MAP_ID_START = -1;
+let nextLocalMapId = LOCAL_MAP_ID_START;
 
 function getImageUrl(filePath: string) {
-  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+  if (
+    filePath.startsWith("http://") ||
+    filePath.startsWith("https://") ||
+    filePath.startsWith("blob:") ||
+    filePath.startsWith("data:")
+  ) {
     return filePath;
   }
 
   const normalizedPath = filePath.startsWith("/") ? filePath : `/${filePath}`;
-  return `${API_ORIGIN}${normalizedPath}`;
+  const encodedPath = normalizedPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${API_ORIGIN}${encodedPath}`;
 }
 
 async function parseResponseError(response: Response, fallback: string) {
@@ -29,6 +40,20 @@ async function parseResponseError(response: Response, fallback: string) {
   }
 
   return fallback;
+}
+
+function normalizeStoredMap(map: unknown): StoredMap {
+  const value = map as Partial<StoredMap> & {
+    Id?: number;
+    Name?: string;
+    FilePath?: string;
+  };
+
+  return {
+    id: value.id ?? value.Id ?? 0,
+    name: value.name ?? value.Name ?? "Untitled map",
+    filePath: value.filePath ?? value.FilePath ?? "",
+  };
 }
 
 interface MapPanelProps {
@@ -113,7 +138,8 @@ export function MapPanel({
         );
       }
 
-      setMaps((await response.json()) as StoredMap[]);
+      const loadedMaps = (await response.json()) as unknown[];
+      setMaps(loadedMaps.map(normalizeStoredMap));
     } catch (error) {
       setStatus(
         error instanceof Error ? error.message : "Failed to load maps.",
@@ -145,9 +171,19 @@ export function MapPanel({
 
     if (!file) return;
 
+    const localMap: StoredMap = {
+      id: nextLocalMapId,
+      name: file.name,
+      filePath: URL.createObjectURL(file),
+    };
+    nextLocalMapId -= 1;
+
+    setMaps((currentMaps) => [...currentMaps, localMap]);
+    onAddMapToField(localMap, localMap.filePath);
+
     const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
     if (!token) {
-      setStatus("Log in before adding maps.");
+      setStatus("Map added locally. Log in to save it.");
       return;
     }
 
@@ -173,8 +209,16 @@ export function MapPanel({
         );
       }
 
-      const uploadedMap = (await response.json()) as StoredMap;
-      setMaps((currentMaps) => [...currentMaps, uploadedMap]);
+      const uploadedMap = normalizeStoredMap(await response.json());
+      setMaps((currentMaps) =>
+        currentMaps.map((currentMap) =>
+          currentMap.id === localMap.id ? uploadedMap : currentMap,
+        ),
+      );
+      onUpdateGameFieldMap(localMap.id, {
+        ...uploadedMap,
+        src: localMap.filePath,
+      });
     } catch (error) {
       setStatus(
         error instanceof Error ? error.message : "Failed to add image.",
