@@ -5,6 +5,7 @@ interface Props extends SidebarToken {
   selectedTokenId: string | null;
   selectedTokenVersion: number;
   onTokenUpdate: (token: SidebarToken) => void;
+  onTokenDelete: (tokenId: string) => void;
 }
 
 function getInitials(name: string) {
@@ -50,8 +51,13 @@ export function TokenCard(props: Props) {
 
   useEffect(() => {
     if (props.selectedTokenId !== props.id) return;
-    setExpanded(true);
-    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    const openTimeout = window.setTimeout(() => {
+      setExpanded(true);
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 0);
+
+    return () => window.clearTimeout(openTimeout);
   }, [props.id, props.selectedTokenId, props.selectedTokenVersion]);
 
   useEffect(() => {
@@ -81,12 +87,16 @@ export function TokenCard(props: Props) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setAvatarPreview(url);
-      props.onTokenUpdate({
-        ...getCurrentToken(),
-        imageSource: url,
-      });
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result !== "string") return;
+        setAvatarPreview(reader.result);
+        props.onTokenUpdate({
+          ...getCurrentToken(),
+          imageSource: reader.result,
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -101,6 +111,8 @@ export function TokenCard(props: Props) {
     init: props.init,
     isEnemy: props.isEnemy,
     imageSource: avatarPreview ?? props.imageSource,
+    sourceTokenId: props.sourceTokenId,
+    baseName: props.baseName,
   });
 
   const movePreview = (preview: HTMLDivElement, clientX: number, clientY: number) => {
@@ -127,6 +139,11 @@ export function TokenCard(props: Props) {
 
   const handleSave = () => {
     props.onTokenUpdate(getCurrentToken());
+    setExpanded(false);
+  };
+
+  const handleDelete = () => {
+    props.onTokenDelete(props.id);
     setExpanded(false);
   };
 
@@ -282,6 +299,7 @@ export function TokenCard(props: Props) {
               <textarea className="token-notes" placeholder="Notes..."></textarea>
               <div className="token-actions">
                 <button type="button" className="token-save-btn" onClick={handleSave}>Save Token</button>
+                <button type="button" className="token-delete-btn" onClick={handleDelete}>Delete</button>
               </div>
             </div>
           )}

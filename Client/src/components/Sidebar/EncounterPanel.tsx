@@ -1,113 +1,148 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { PlacedToken } from "../../types/tokens";
 
-const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
-
-function getAuthToken() {
-  return localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+interface EncounterPanelProps {
+  placedTokens: PlacedToken[];
+  encounterTokens: PlacedToken[];
+  activeTokenInstanceId: string | null;
+  onEncounterTokensChange: (tokens: PlacedToken[]) => void;
 }
 
-// Temporary mock tokens from backend
-const mockTokens = [
-  { name: "VALERIUS", init: "13" },
-  { name: "GOBLIN SCOUT", init: "15" },
-];
+function getInitiativeValue(init: string) {
+  const parsedInit = Number.parseInt(init.replace("+", ""), 10);
+  return Number.isFinite(parsedInit) ? parsedInit : 0;
+}
 
-export function EncounterPanel() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [encounterTokens, setEncounterTokens] = useState<typeof mockTokens>([]);
-  const [availableTokens, setAvailableTokens] = useState<typeof mockTokens>([]);
-  const [selectedToken, setSelectedToken] = useState("");
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
+}
+
+function getSortedEncounterTokens(tokens: PlacedToken[]) {
+  return [...tokens].sort((firstToken, secondToken) => {
+    const initDifference =
+      getInitiativeValue(secondToken.init) - getInitiativeValue(firstToken.init);
+
+    if (initDifference !== 0) return initDifference;
+    return firstToken.name.localeCompare(secondToken.name);
+  });
+}
+
+export function EncounterPanel({
+  placedTokens,
+  encounterTokens,
+  activeTokenInstanceId,
+  onEncounterTokensChange,
+}: EncounterPanelProps) {
+  const [draftInitiatives, setDraftInitiatives] = useState<Record<string, string>>({});
+  const isEncounterActive = encounterTokens.length > 0;
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      setIsLoggedIn(true);
-      // TODO: Load from backend
-      setAvailableTokens(mockTokens);
-      setEncounterTokens(mockTokens);
-    } else {
-      setIsLoggedIn(false);
-      setAvailableTokens(mockTokens);
-      setEncounterTokens([]);
-    }
-  }, []);
+    setDraftInitiatives((current) => {
+      const next = { ...current };
+      placedTokens.forEach((token) => {
+        if (next[token.instanceId] === undefined) {
+          next[token.instanceId] = token.init;
+        }
+      });
+      return next;
+    });
+  }, [placedTokens]);
 
-  const handleAddEncounterToken = () => {
-    if (!selectedToken) return;
-    const tokenToAdd = availableTokens.find((t) => t.name === selectedToken);
-    if (tokenToAdd) {
-      setEncounterTokens([...encounterTokens, tokenToAdd]);
-      setSelectedToken("");
-    }
+  const displayTokens = placedTokens.map((token) => ({
+    ...token,
+    init: draftInitiatives[token.instanceId] ?? token.init,
+  }));
+
+  const handleInitiativeChange = (instanceId: string, init: string) => {
+    setDraftInitiatives((current) => ({ ...current, [instanceId]: init }));
+
+    if (!isEncounterActive) return;
+    onEncounterTokensChange(
+      encounterTokens.map((token) =>
+        token.instanceId === instanceId ? { ...token, init } : token,
+      ),
+    );
   };
 
-  const handleRemoveEncounterToken = (indexToRemove: number) => {
-    setEncounterTokens(encounterTokens.filter((_, index) => index !== indexToRemove));
+  const handleStartEncounter = () => {
+    const seededTokens = placedTokens.map((token) => ({
+      ...token,
+      init: draftInitiatives[token.instanceId] ?? token.init,
+    }));
+    onEncounterTokensChange(getSortedEncounterTokens(seededTokens));
+  };
+
+  const handleEndEncounter = () => {
+    onEncounterTokensChange([]);
   };
 
   return (
     <div className="encounter-panel token-list">
       <h2 className="tokens-title">Encounter</h2>
       <div className="token-list-scrollable">
-        {encounterTokens.map((token, index) => (
-          <article key={`${token.name}-${index}`} className="encounter-card token-card">
+        {displayTokens.map((token, index) => (
+          <article
+            key={token.instanceId}
+            className={`encounter-card token-card ${
+              token.instanceId === activeTokenInstanceId ? "encounter-card-active" : ""
+            }`}
+          >
             <div className="token-card-main" style={{ alignItems: "center" }}>
-              <div className="token-card-avatar encounter-avatar" style={index === 0 ? { borderColor: "var(--primary)" } : {}} />
+              <div
+                className="token-card-avatar encounter-avatar"
+                style={{
+                  borderColor: index === 0 ? "var(--primary)" : undefined,
+                  backgroundImage: token.imageSource ? `url(${token.imageSource})` : undefined,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                {!token.imageSource && getInitials(token.name)}
+              </div>
               <div className="token-card-info">
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <h3 style={{ fontSize: "16px", marginBottom: "4px" }}>{token.name}</h3>
-                  <button 
-                    type="button" 
-                    className="encounter-remove-btn"
-                    onClick={() => handleRemoveEncounterToken(index)}
-                  >
-                    X
-                  </button>
-                </div>
-                <div className="token-card-hp" style={{ justifyContent: "flex-start" }}>
-                  <span className="hp-label" style={{ fontSize: "12px" }}>Initiative:</span>
-                  <div className="hp-bar-container">
-                    <span className="hp-text" style={{ fontSize: "14px", minWidth: "auto" }}>{token.init}</span>
-                    <div className="hp-bar" style={{ width: "80px" }}>
-                      <div className="hp-bar-fill" style={{ width: `${Math.min(100, (parseInt(token.init) / 30) * 100)}%`, background: "var(--text-soft)" }} />
-                    </div>
-                  </div>
-                </div>
+                <h3 style={{ fontSize: "16px", marginBottom: "4px" }}>{token.name}</h3>
+                <label className="token-detail-field encounter-init-field">
+                  <span>Initiative:</span>
+                  <input
+                    type="number"
+                    value={token.init}
+                    onChange={(event) =>
+                      handleInitiativeChange(token.instanceId, event.currentTarget.value)
+                    }
+                  />
+                </label>
               </div>
             </div>
           </article>
         ))}
-        {encounterTokens.length === 0 && (
+        {placedTokens.length === 0 && (
           <p className="notes-status" style={{ textAlign: "center", textTransform: "uppercase" }}>
-            The encounter list is empty.
+            Place tokens on the map to begin an encounter.
           </p>
         )}
       </div>
-      
-      <div className="encounter-add-section" style={{ padding: "0 32px 14px", display: "flex", flexDirection: "column", gap: "10px" }}>
-        <select 
-          className="encounter-token-select"
-          value={selectedToken}
-          onChange={(e) => setSelectedToken(e.target.value)}
+      <div className="encounter-actions">
+        <button
+          type="button"
+          className="command-button encounter-action-btn"
+          onClick={handleStartEncounter}
+          disabled={placedTokens.length === 0 || isEncounterActive}
         >
-          <option value="" disabled>Select Token...</option>
-          {availableTokens.map((t) => (
-            <option key={t.name} value={t.name}>{t.name}</option>
-          ))}
-        </select>
-        <button 
-          type="button" 
-          className="command-button encounter-add-btn"
-          disabled={!selectedToken}
-          onClick={handleAddEncounterToken}
-        >
-          Add Token
+          Start Encounter
         </button>
-        {!isLoggedIn && (
-          <p className="notes-status" style={{ margin: 0, textTransform: "uppercase", textAlign: "center" }}>
-            Log in to save encounter.
-          </p>
-        )}
+        <button
+          type="button"
+          className="command-button encounter-action-btn"
+          onClick={handleEndEncounter}
+          disabled={!isEncounterActive}
+        >
+          End Encounter
+        </button>
       </div>
     </div>
   );

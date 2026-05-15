@@ -7,18 +7,26 @@ interface Props {
   gridSize: number;
   gameFieldMaps: GameFieldMap[];
   placedTokens: PlacedToken[];
+  activeTokenInstanceId: string | null;
   onGridSizeChange: (gridSize: number) => void;
   onPlaceToken: (token: SidebarToken, gridX: number, gridY: number) => void;
   onSelectToken: (tokenId: string) => void;
+  onDeletePlacedToken: (tokenInstanceId: string) => void;
+  onTokenDragStateChange: (isDragging: boolean, clientX?: number) => void;
+  isPointInTrashZone: (clientX: number, clientY: number) => boolean;
 }
 
 function GridBg({
   gridSize,
   gameFieldMaps,
   placedTokens,
+  activeTokenInstanceId,
   onGridSizeChange,
   onPlaceToken,
   onSelectToken,
+  onDeletePlacedToken,
+  onTokenDragStateChange,
+  isPointInTrashZone,
 }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -136,7 +144,11 @@ function GridBg({
           panX={pan.x}
           panY={pan.y}
           placedTokens={placedTokens}
+          activeTokenInstanceId={activeTokenInstanceId}
           onSelectToken={onSelectToken}
+          onDeletePlacedToken={onDeletePlacedToken}
+          onTokenDragStateChange={onTokenDragStateChange}
+          isPointInTrashZone={isPointInTrashZone}
         ></GridItems>
       </div>
     </div>

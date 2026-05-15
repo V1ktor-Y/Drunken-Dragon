@@ -9,6 +9,8 @@ export interface SidebarToken {
   init: string;
   isEnemy: boolean;
   imageSource?: string;
+  sourceTokenId?: string;
+  baseName?: string;
 }
 
 export interface PlacedToken extends SidebarToken {
@@ -21,4 +23,8 @@ export interface TokenDropRequestDetail {
   token: SidebarToken;
   clientX: number;
   clientY: number;
+}
+
+export interface TokenCloneCreatedDetail {
+  token: SidebarToken;
 }

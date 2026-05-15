@@ -154,6 +154,61 @@ button {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5), 0 0 0 2px var(--primary);
 }
 
+.grid-component-active {
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.5),
+    0 0 0 4px var(--primary),
+    0 0 18px rgba(42, 157, 143, 0.72);
+}
+
+.token-trash-zone {
+  position: absolute;
+  z-index: 25;
+  top: 50%;
+  right: 24px;
+  display: flex;
+  width: 136px;
+  min-height: 112px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(224, 122, 95, 0.72);
+  border-radius: var(--radius-md);
+  background: rgba(37, 40, 45, 0.94);
+  box-shadow: var(--shadow-lg);
+  color: var(--danger);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translate(12px, -50%) scale(0.96);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.token-trash-zone-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%) scale(1);
+}
+
+.token-trash-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 13px;
+}
+
 .turn-tracker {
   position: absolute;
   z-index: 20;
@@ -205,6 +260,15 @@ button {
   transform: scale(1.1);
 }
 
+.turn-chip img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
 .turn-chip-faded {
   opacity: 0.4;
 }
@@ -212,6 +276,21 @@ button {
 .turn-divider {
   height: 40px;
   border-left: 1px solid var(--border);
+}
+
+.turn-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.turn-step-button {
+  min-width: 86px;
+  padding-inline: 10px;
 }
 
 .turn-actions {
@@ -1336,37 +1415,51 @@ button {
   border-width: 2px;
 }
 
-.encounter-remove-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 16px;
-  line-height: 1;
-  padding: 4px;
+.encounter-card-active {
+  border-color: rgba(42, 157, 143, 0.7);
+  box-shadow:
+    0 0 0 2px rgba(42, 157, 143, 0.45),
+    0 0 18px rgba(42, 157, 143, 0.4);
 }
 
-.encounter-remove-btn:hover {
-  color: var(--danger);
-}
-
-.encounter-token-select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--border-soft);
-  background: var(--surface);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 14px;
-  border-radius: var(--radius-sm);
-  text-transform: uppercase;
-}
-
-.encounter-token-select:focus {
-  outline: none;
+.encounter-card-active .encounter-avatar {
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(42, 157, 143, 0.2);
+  box-shadow:
+    0 0 0 3px rgba(42, 157, 143, 0.6),
+    0 0 14px rgba(42, 157, 143, 0.55);
+}
+
+.encounter-init-field {
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
+.encounter-init-field input {
+  width: 72px;
+  text-align: center;
+}
+
+.encounter-init-field input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.encounter-init-field input[type="number"]::-webkit-inner-spin-button,
+.encounter-init-field input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.encounter-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 32px 18px;
+}
+
+.encounter-action-btn {
+  flex: 1;
+  min-height: 40px;
+  font-size: 11px;
 }
 
 .token-list {
@@ -1632,6 +1725,7 @@ button {
   justify-content: flex-end;
   width: 100%;
   margin-top: 12px;
+  gap: 10px;
 }
 
 .token-save-btn {
@@ -1654,6 +1748,28 @@ button {
   background: var(--primary-soft);
   color: #101112;
   border-color: var(--primary-soft);
+}
+
+.token-delete-btn {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 150ms ease;
+}
+
+.token-delete-btn:hover,
+.token-delete-btn:focus {
+  background: rgba(224, 122, 95, 0.18);
+  color: #101112;
+  border-color: rgba(224, 122, 95, 0.35);
 }
 
 .token-toggle-btn {

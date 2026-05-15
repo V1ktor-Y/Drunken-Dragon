@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 import Droppable from "./Droppable";
 
 interface Props {
+  tokenInstanceId?: string;
   tokenId?: string;
+  isActive?: boolean;
   imageSource?: string;
   name: string;
   gridX: number;
@@ -11,6 +13,9 @@ interface Props {
   panY: number;
   gridSize: number;
   onSelect?: (tokenId: string) => void;
+  onDelete?: (tokenInstanceId: string) => void;
+  onDragStateChange?: (isDragging: boolean, clientX?: number) => void;
+  isPointInTrashZone?: (clientX: number, clientY: number) => boolean;
 }
 
 function getInitials(name: string) {
@@ -22,7 +27,20 @@ function getInitials(name: string) {
     .join("");
 }
 
-function PlayAreaToken({ tokenId, imageSource, name, gridSize, gridX, gridY, onSelect }: Props) {
+function PlayAreaToken({
+  tokenInstanceId,
+  tokenId,
+  isActive = false,
+  imageSource,
+  name,
+  gridSize,
+  gridX,
+  gridY,
+  onSelect,
+  onDelete,
+  onDragStateChange,
+  isPointInTrashZone,
+}: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{
     pointerId: number;
@@ -68,6 +86,7 @@ function PlayAreaToken({ tokenId, imageSource, name, gridSize, gridX, gridY, onS
 
     dragState.hasMoved = true;
     setIsDragging(true);
+    onDragStateChange?.(true, event.clientX);
 
     const deltaX = event.clientX - dragState.lastX;
     const deltaY = event.clientY - dragState.lastY;
@@ -88,6 +107,7 @@ function PlayAreaToken({ tokenId, imageSource, name, gridSize, gridX, gridY, onS
 
     dragState.lastX = event.clientX;
     dragState.lastY = event.clientY;
+    onDragStateChange?.(true, event.clientX);
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -96,12 +116,21 @@ function PlayAreaToken({ tokenId, imageSource, name, gridSize, gridX, gridY, onS
 
     dragRef.current = null;
     setIsDragging(false);
+    onDragStateChange?.(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
     if (!dragState.hasMoved && tokenId) {
       onSelect?.(tokenId);
+      return;
+    }
+
+    if (
+      tokenInstanceId &&
+      isPointInTrashZone?.(event.clientX, event.clientY)
+    ) {
+      onDelete?.(tokenInstanceId);
       return;
     }
 
@@ -118,7 +147,7 @@ function PlayAreaToken({ tokenId, imageSource, name, gridSize, gridX, gridY, onS
         onPointerCancel={handlePointerUp}
         draggable={false}
         onDragStart={(e) => e.preventDefault()}
-        className="grid-component"
+        className={`grid-component ${isActive ? "grid-component-active" : ""}`}
         style={{
           position: "absolute",
           width: gridSize,
