@@ -32,31 +32,6 @@ function saveStoredTokens(tokens: SidebarToken[]) {
   }
 }
 
-const mockTokens = [
-  {
-    id: "mock-valerius",
-    name: "VALERIUS",
-    type: "PC - PALADIN",
-    hp: "84/84",
-    ac: "18",
-    speed: "30ft",
-    size: "MED",
-    init: "+2",
-    isEnemy: false,
-  },
-  {
-    id: "mock-goblin-scout",
-    name: "GOBLIN SCOUT",
-    type: "NPC - HOSTILE",
-    hp: "12/15",
-    ac: "13",
-    speed: "30ft",
-    size: "SML",
-    init: "+4",
-    isEnemy: true,
-  },
-];
-
 interface TokenListProps {
   selectedTokenId: string | null;
   selectedTokenVersion: number;
@@ -70,42 +45,85 @@ export function TokenList({
   onTokenUpdate,
   onTokenDelete,
 }: TokenListProps) {
-  const [isLoggedIn] = useState(() => Boolean(getAuthToken()));
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(getAuthToken()));
   const [tokens, setTokens] = useState<SidebarToken[]>(() =>
-    getStoredTokens() ?? (getAuthToken() ? mockTokens : []),
+    getStoredTokens() ?? [],
   );
   const lastCloneRef = useRef<{ key: string; timestamp: number } | null>(null);
+
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      setIsLoggedIn(Boolean(getAuthToken()));
+    };
+    window.addEventListener("drunkenDragon:authChanged", handleAuthChanged);
+    return () => window.removeEventListener("drunkenDragon:authChanged", handleAuthChanged);
+  }, []);
 
   // Re-hydrate images from IndexedDB safely on mount
   useEffect(() => {
     let mounted = true;
 
-    async function loadImages() {
-      // Capture the tokens we need to hydrate
-      const tokensToHydrate = getStoredTokens() ?? (getAuthToken() ? mockTokens : []);
+    async function loadData() {
+      // 1. Rehydrate images from IndexedDB
+      const tokensToHydrate = getStoredTokens() ?? [];
       
-      const updatedTokens = await Promise.all(
+      let currentTokens = await Promise.all(
         tokensToHydrate.map(async (token) => {
           const fetchId = token.sourceTokenId ?? token.id;
           const imageSource = await getTokenImage(fetchId);
           return imageSource ? { ...token, imageSource } : token;
         })
       );
+
+      // 2. Fetch backend tokens if logged in
+      const token = getAuthToken();
+      if (token) {
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
+          const res = await fetch(`${API_BASE_URL}/api/CToken`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (res.ok) {
+            const data = await res.json() as any[];
+            const backendTokens: SidebarToken[] = data.map(dto => ({
+              id: dto.id.toString(),
+              name: dto.name,
+              type: dto.class || "CUSTOM",
+              hp: `${dto.maxHp}/${dto.maxHp}`,
+              ac: dto.armorClass.toString(),
+              speed: `${dto.speed}ft`,
+              size: "MED",
+              init: "+0",
+              isEnemy: false,
+              imageSource: dto.icon && dto.icon !== "/uploads/icons/default.png" 
+                ? `${API_BASE_URL}${dto.icon}` 
+                : undefined
+            }));
+
+            // Merge backend tokens into currentTokens (replacing local ones with the same ID, or adding new ones)
+            const backendIds = new Set(backendTokens.map(t => t.id));
+            const mergedTokens = [
+              ...backendTokens,
+              ...currentTokens.filter(t => !backendIds.has(t.id))
+            ];
+            currentTokens = mergedTokens;
+          }
+        } catch (err) {
+          console.error("Failed to load backend tokens", err);
+        }
+      }
       
-      if (mounted && updatedTokens.some((t, i) => t.imageSource !== tokensToHydrate[i].imageSource)) {
-        setTokens((currentTokens) => 
-          currentTokens.map((ct) => {
-            const hydrated = updatedTokens.find((ut) => ut.id === ct.id);
-            return hydrated && hydrated.imageSource ? { ...ct, imageSource: hydrated.imageSource } : ct;
-          })
-        );
+      if (mounted) {
+        setTokens(currentTokens);
+        saveStoredTokens(currentTokens);
       }
     }
     
-    loadImages();
+    loadData();
 
     return () => { mounted = false; };
-  }, []); // Run exactly once on mount
+  }, [isLoggedIn]); // Run on mount and when login state changes
 
   useEffect(() => {
     const handleTokenCloned = (event: Event) => {
@@ -152,20 +170,95 @@ export function TokenList({
     saveStoredTokens(nextTokens);
   };
 
-  const handleTokenUpdate = (updatedToken: SidebarToken) => {
-    const nextTokens = tokens.map((token) =>
+  const handleTokenUpdate = async (updatedToken: SidebarToken) => {
+    // Optimistic update locally
+    let nextTokens = tokens.map((token) =>
       token.id === updatedToken.id ? updatedToken : token,
     );
     setTokens(nextTokens);
     saveStoredTokens(nextTokens);
     onTokenUpdate(updatedToken);
+
+    // Sync to backend if logged in
+    const authToken = getAuthToken();
+    // Only upload original templates, not placed copies
+    if (authToken && !updatedToken.sourceTokenId) {
+      try {
+        const formData = new FormData();
+        formData.append("Name", updatedToken.name);
+        formData.append("Class", updatedToken.type);
+        
+        const [currentHp, maxHpStr] = updatedToken.hp.split("/");
+        formData.append("MaxHp", (parseInt(maxHpStr || currentHp, 10) || 1).toString());
+        formData.append("Speed", (parseInt(updatedToken.speed.replace("ft", ""), 10) || 30).toString());
+        formData.append("ArmorClass", (parseInt(updatedToken.ac, 10) || 10).toString());
+
+        if (updatedToken.imageSource && updatedToken.imageSource.startsWith("data:")) {
+           const res = await fetch(updatedToken.imageSource);
+           const blob = await res.blob();
+           formData.append("Icon", blob, "icon.jpg");
+        }
+
+        const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
+        const isLocal = updatedToken.id.startsWith("token-");
+        const method = isLocal ? "POST" : "PUT";
+        const url = isLocal 
+           ? `${API_BASE_URL}/api/CToken` 
+           : `${API_BASE_URL}/api/CToken/${updatedToken.id}`;
+
+        const response = await fetch(url, {
+           method,
+           headers: { Authorization: `Bearer ${authToken}` },
+           body: formData
+        });
+
+        if (response.ok) {
+           if (isLocal) {
+             const data = await response.json() as any; // CharacterTokenGetDto
+             const finalToken = { 
+               ...updatedToken, 
+               id: data.id.toString(),
+               imageSource: data.icon && data.icon !== "/uploads/icons/default.png" 
+                  ? `${API_BASE_URL}${data.icon}` 
+                  : updatedToken.imageSource
+             };
+             
+             nextTokens = nextTokens.map((token) =>
+                token.id === updatedToken.id ? finalToken : token,
+             );
+             setTokens(nextTokens);
+             saveStoredTokens(nextTokens);
+             
+             // Tell App.tsx to update the placed copies with the new parent ID if it cares,
+             // but mostly this just switches the sidebar token's ID so future saves use PUT.
+             onTokenUpdate(finalToken);
+           }
+        }
+      } catch (err) {
+         console.error("Failed to sync token to backend", err);
+      }
+    }
   };
 
-  const handleTokenDelete = (tokenId: string) => {
+  const handleTokenDelete = async (tokenId: string) => {
+    // Delete optimistically
     const nextTokens = tokens.filter((token) => token.id !== tokenId);
     setTokens(nextTokens);
     saveStoredTokens(nextTokens);
     onTokenDelete(tokenId);
+
+    const authToken = getAuthToken();
+    if (authToken && !tokenId.startsWith("token-") && !tokenId.startsWith("token-copy-")) {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
+        await fetch(`${API_BASE_URL}/api/CToken/${tokenId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+      } catch (err) {
+        console.error("Failed to delete token from backend", err);
+      }
+    }
   };
 
   return (

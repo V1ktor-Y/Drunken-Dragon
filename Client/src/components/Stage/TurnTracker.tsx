@@ -11,15 +11,6 @@ function getInitiativeValue(init: string) {
   return Number.isFinite(parsedInit) ? parsedInit : 0;
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
-}
-
 function getSortedTurns(tokens: PlacedToken[]) {
   return [...tokens].sort((firstToken, secondToken) => {
     const initDifference =
@@ -61,12 +52,12 @@ export function TurnTracker({
   return (
     <section className="turn-tracker" aria-label="Turn tracker">
       <div className="turn-list">
-        {turns.map((turn) => {
+        {turns.map((turn, index) => {
           const isActive = turn.instanceId === activeTokenInstanceId;
 
           return (
           <div
-            key={turn.instanceId}
+            key={`${turn.instanceId}-${index}`}
             className={`turn-chip ${
               turn.isEnemy ? "turn-chip-enemy" : "turn-chip-ally"
             } ${
@@ -74,10 +65,8 @@ export function TurnTracker({
             }`}
             title={`${turn.name} - initiative ${turn.init}`}
           >
-            {turn.imageSource ? (
+            {turn.imageSource && (
               <img src={turn.imageSource} alt="" draggable={false} />
-            ) : (
-              getInitials(turn.name) || "T"
             )}
           </div>
           );

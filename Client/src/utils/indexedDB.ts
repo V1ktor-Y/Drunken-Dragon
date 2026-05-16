@@ -53,3 +53,14 @@ export async function deleteTokenImage(id: string): Promise<void> {
     request.onerror = () => reject(request.error);
   });
 }
+
+export async function clearAllTokenImages(): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}

@@ -238,6 +238,7 @@ button {
   place-items: center;
   border: 1px solid var(--border);
   border-radius: 50%;
+  overflow: hidden;
   background: var(--surface-high);
   color: var(--text);
   font-family: inherit;

@@ -1,6 +1,3 @@
-import imgA from "../../assets/ball.jpg";
-import imgB from "../../assets/hornet.jpg";
-import imgC from "../../assets/joy.jpg";
 import PlayAreaToken from "./PlayAreaToken";
 import type { PlacedToken } from "../../types/tokens";
 
@@ -27,43 +24,8 @@ function GridItems({
   onTokenDragStateChange,
   isPointInTrashZone,
 }: Props) {
-  const gridItemData = [
-    {
-      id: 0,
-      gridX: 0,
-      gridY: 0,
-      image_source: imgA,
-    },
-    {
-      id: 1,
-      gridX: 2,
-      gridY: 1,
-      image_source: imgB,
-    },
-    {
-      id: 2,
-      gridX: -2,
-      gridY: -1,
-      image_source: imgC,
-    },
-  ];
-
   return (
     <>
-      {gridItemData.map((item) => {
-        return (
-          <PlayAreaToken
-            key={item.id}
-            imageSource={item.image_source}
-            name={`Token ${item.id + 1}`}
-            gridSize={gridSize}
-            gridX={item.gridX}
-            gridY={item.gridY}
-            panX={panX}
-            panY={panY}
-          ></PlayAreaToken>
-        );
-      })}
       {placedTokens.map((token) => (
         <PlayAreaToken
           key={token.instanceId}

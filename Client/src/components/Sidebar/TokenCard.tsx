@@ -1,21 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import type { SidebarToken, TokenDropRequestDetail } from "../../types/tokens";
 import { saveTokenImage, deleteTokenImage } from "../../utils/indexedDB";
+import classIcon from "../../assets/class-management-svgrepo-com.svg";
+import acIcon from "../../assets/shield-svgrepo-com.svg";
+import speedIcon from "../../assets/fast-forward-svgrepo-com.svg";
+import sizeIcon from "../../assets/size-fullscreen-svgrepo-com.svg";
+import initIcon from "../../assets/initiative-svgrepo-com.svg";
+import notesIcon from "../../assets/note-sticky-svgrepo-com.svg";
 
 interface Props extends SidebarToken {
   selectedTokenId: string | null;
   selectedTokenVersion: number;
   onTokenUpdate: (token: SidebarToken) => void;
   onTokenDelete: (tokenId: string) => void;
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
 }
 
 function isTokenEditTarget(target: EventTarget | null) {
@@ -34,6 +31,9 @@ export function TokenCard(props: Props) {
 
   const [localName, setLocalName] = useState(props.name);
   const [localHp, setLocalHp] = useState(props.hp);
+  const [localAc, setLocalAc] = useState(props.ac);
+  const [localType, setLocalType] = useState(props.type);
+  const [localInit, setLocalInit] = useState(props.init);
   const [localSpeed, setLocalSpeed] = useState(props.speed);
   const [localSize, setLocalSize] = useState(props.size);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -128,7 +128,6 @@ export function TokenCard(props: Props) {
   const buildDragPreview = (token: SidebarToken, origin: DOMRect) => {
     const preview = document.createElement("div");
     preview.className = "token-drag-preview";
-    preview.textContent = token.imageSource ? "" : getInitials(token.name) || "T";
     if (token.imageSource) {
       preview.style.backgroundImage = `url(${token.imageSource})`;
     }
@@ -294,11 +293,31 @@ export function TokenCard(props: Props) {
           {expanded && (
             <div className="token-card-details">
               <label className="token-detail-field">
-                <span>Speed:</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <img src={classIcon} alt="Class" style={{ width: "16px", height: "16px" }} />
+                  Class:
+                </span>
+                <input type="text" value={localType} onChange={(e) => setLocalType(e.target.value)} />
+              </label>
+              <label className="token-detail-field">
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <img src={acIcon} alt="AC" style={{ width: "16px", height: "16px" }} />
+                  AC:
+                </span>
+                <input type="text" value={localAc} onChange={(e) => setLocalAc(e.target.value)} />
+              </label>
+              <label className="token-detail-field">
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <img src={speedIcon} alt="Speed" style={{ width: "16px", height: "16px" }} />
+                  Speed:
+                </span>
                 <input type="text" value={localSpeed} onChange={(e) => setLocalSpeed(e.target.value)} />
               </label>
               <label className="token-detail-field">
-                <span>Size:</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <img src={sizeIcon} alt="Size" style={{ width: "16px", height: "16px" }} />
+                  Size:
+                </span>
                 <select value={localSize} onChange={(e) => setLocalSize(e.target.value)}>
                   <option value="SML">Small</option>
                   <option value="MED">Medium</option>
@@ -306,7 +325,17 @@ export function TokenCard(props: Props) {
                   <option value="Humanoid">Humanoid</option>
                 </select>
               </label>
-              <textarea className="token-notes" placeholder="Notes..."></textarea>
+              <label className="token-detail-field">
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <img src={initIcon} alt="Initiative" style={{ width: "16px", height: "16px" }} />
+                  Init:
+                </span>
+                <input type="text" value={localInit} onChange={(e) => setLocalInit(e.target.value)} />
+              </label>
+              <div style={{ display: "flex", gap: "6px", alignItems: "flex-start", marginTop: "8px" }}>
+                <img src={notesIcon} alt="Notes" style={{ width: "16px", height: "16px", marginTop: "6px" }} />
+                <textarea className="token-notes" placeholder="Notes..." style={{ flex: 1 }}></textarea>
+              </div>
               <div className="token-actions">
                 <button type="button" className="token-save-btn" onClick={handleSave}>Save Token</button>
                 <button type="button" className="token-delete-btn" onClick={handleDelete}>Delete</button>

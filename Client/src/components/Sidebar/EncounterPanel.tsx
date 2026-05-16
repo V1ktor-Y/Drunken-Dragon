@@ -132,9 +132,7 @@ export function EncounterPanel({
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
-              >
-                {!token.imageSource && getInitials(token.name)}
-              </div>
+              />
               <div className="token-card-info">
                 <h3 style={{ fontSize: "16px", marginBottom: "4px" }}>{token.name}</h3>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>

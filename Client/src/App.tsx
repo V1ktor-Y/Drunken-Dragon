@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Stage } from "./components/Stage/Stage";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import type { GameFieldMap, StoredMap } from "./types/maps";
 import type { PlacedToken, SidebarToken, TokenCloneCreatedDetail } from "./types/tokens";
 
 const TOKEN_STORAGE_KEY = "drunkenDragon.tokens";
+const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
+const AUTH_CHANGED_EVENT = "drunkenDragon:authChanged";
 
 function createGameFieldMap(map: StoredMap, src: string): GameFieldMap {
   return {
@@ -43,6 +45,21 @@ function App() {
     gridY: number;
     timestamp: number;
   } | null>(null);
+
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+      if (!token) {
+        setPlacedTokens([]);
+        setEncounterTokens([]);
+        setActiveTokenInstanceId(null);
+        setSelectedTokenId(null);
+      }
+    };
+
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+  }, []);
 
   const getStoredTokenFamilyCount = (token: SidebarToken) => {
     const storedTokens = localStorage.getItem(TOKEN_STORAGE_KEY);
