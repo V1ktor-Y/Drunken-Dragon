@@ -28,6 +28,7 @@ namespace Server.Controllers
                 Name = t.Name,
                 Icon = t.Icon,
                 Class = t.Class,
+                Note = t.Note,
                 MaxHp = t.MaxHp,
                 Speed = t.Speed,
                 ArmorClass = t.ArmorClass
@@ -64,6 +65,7 @@ namespace Server.Controllers
                 Name = dto.Name,
                 Icon = iconPath,
                 Class = dto.Class,
+                Note = dto.Note,
                 MaxHp = dto.MaxHp,
                 Speed = dto.Speed,
                 ArmorClass = dto.ArmorClass,
@@ -77,6 +79,7 @@ namespace Server.Controllers
                 Name = result.Name,
                 Icon = result.Icon,
                 Class = result.Class,
+                Note = result.Note,
                 MaxHp = result.MaxHp,
                 Speed = result.Speed,
                 ArmorClass = result.ArmorClass
@@ -111,6 +114,7 @@ namespace Server.Controllers
 
             if (dto.Name != null) existingToken.Name = dto.Name;
             if (dto.Class != null) existingToken.Class = dto.Class;
+            if (dto.Note != null) existingToken.Note = dto.Note;
             existingToken.MaxHp = dto.MaxHp ?? existingToken.MaxHp;
             existingToken.Speed = dto.Speed ?? existingToken.Speed;
             existingToken.ArmorClass = dto.ArmorClass ?? existingToken.ArmorClass;

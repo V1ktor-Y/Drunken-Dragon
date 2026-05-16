@@ -13,6 +13,7 @@ public class CharacterTokenUpdateDto
     public IFormFile? Icon { get; set; }
 
     public string? Class { get; set; }
+    public string? Note {get;set;}
 
     [Range(1, 1000)]
     public int? MaxHp { get; set; }
