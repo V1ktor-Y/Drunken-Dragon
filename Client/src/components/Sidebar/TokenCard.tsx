@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { SidebarToken, TokenDropRequestDetail } from "../../types/tokens";
+import { saveTokenImage, deleteTokenImage } from "../../utils/indexedDB";
 
 interface Props extends SidebarToken {
   selectedTokenId: string | null;
@@ -84,12 +85,17 @@ export function TokenCard(props: Props) {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         if (typeof reader.result !== "string") return;
+        
+        // Save the massive Base64 string directly into IndexedDB, completely bypassing localStorage
+        const storageId = props.sourceTokenId ?? props.id;
+        await saveTokenImage(storageId, reader.result);
+
         setAvatarPreview(reader.result);
         props.onTokenUpdate({
           ...getCurrentToken(),
@@ -142,7 +148,11 @@ export function TokenCard(props: Props) {
     setExpanded(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    // If not a clone, delete the image from IndexedDB completely
+    if (!props.sourceTokenId) {
+      await deleteTokenImage(props.id);
+    }
     props.onTokenDelete(props.id);
     setExpanded(false);
   };

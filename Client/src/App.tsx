@@ -81,41 +81,37 @@ function App() {
       timestamp: now,
     };
 
+    const shouldCloneToken = placedTokens.some((currentToken) => currentToken.id === token.id);
     const storedFamilyCount = getStoredTokenFamilyCount(token);
+    const sourceTokenId = token.sourceTokenId ?? token.id;
+    const placedCopyCount = placedTokens.filter(
+      (currentToken) =>
+        currentToken.id === sourceTokenId ||
+        currentToken.sourceTokenId === sourceTokenId,
+    ).length;
+    const copyNumber = Math.max(storedFamilyCount, placedCopyCount || 1);
 
-    setPlacedTokens((currentTokens) => {
-      const shouldCloneToken = currentTokens.some(
-        (currentToken) => currentToken.id === token.id,
+    const tokenForPlacement = shouldCloneToken
+      ? createTokenClone(token, copyNumber)
+      : token;
+
+    if (shouldCloneToken) {
+      window.dispatchEvent(
+        new CustomEvent<TokenCloneCreatedDetail>("drunken-dragon-token-cloned", {
+          detail: { token: tokenForPlacement },
+        }),
       );
-      const sourceTokenId = token.sourceTokenId ?? token.id;
-      const placedCopyCount = currentTokens.filter(
-        (currentToken) =>
-          currentToken.id === sourceTokenId ||
-          currentToken.sourceTokenId === sourceTokenId,
-      ).length;
-      const copyNumber = Math.max(storedFamilyCount, placedCopyCount || 1);
-      const tokenForPlacement = shouldCloneToken
-        ? createTokenClone(token, copyNumber)
-        : token;
+    }
 
-      if (shouldCloneToken) {
-        window.dispatchEvent(
-          new CustomEvent<TokenCloneCreatedDetail>("drunken-dragon-token-cloned", {
-            detail: { token: tokenForPlacement },
-          }),
-        );
-      }
-
-      return [
-        ...currentTokens,
-        {
-          ...tokenForPlacement,
-          instanceId: `${tokenForPlacement.id}-${Date.now()}-${crypto.randomUUID()}`,
-          gridX,
-          gridY,
-        },
-      ];
-    });
+    setPlacedTokens((currentTokens) => [
+      ...currentTokens,
+      {
+        ...tokenForPlacement,
+        instanceId: `${tokenForPlacement.id}-${Date.now()}-${crypto.randomUUID()}`,
+        gridX,
+        gridY,
+      },
+    ]);
   };
 
   const handleTokenUpdate = (updatedToken: SidebarToken) => {
