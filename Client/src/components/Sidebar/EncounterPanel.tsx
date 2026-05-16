@@ -81,6 +81,37 @@ export function EncounterPanel({
     onEncounterTokensChange([]);
   };
 
+  const handleRollSingle = (instanceId: string) => {
+    const baseToken = placedTokens.find((t) => t.instanceId === instanceId);
+    if (!baseToken) return;
+
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const modifier = getInitiativeValue(baseToken.init);
+    const total = roll + modifier;
+    handleInitiativeChange(instanceId, total.toString());
+  };
+
+  const handleRollAll = () => {
+    const newDrafts = { ...draftInitiatives };
+
+    placedTokens.forEach((token) => {
+      const roll = Math.floor(Math.random() * 20) + 1;
+      const modifier = getInitiativeValue(token.init);
+      newDrafts[token.instanceId] = (roll + modifier).toString();
+    });
+
+    setDraftInitiatives(newDrafts);
+
+    if (isEncounterActive) {
+      onEncounterTokensChange(
+        encounterTokens.map((token) => ({
+          ...token,
+          init: newDrafts[token.instanceId] ?? token.init,
+        }))
+      );
+    }
+  };
+
   return (
     <div className="encounter-panel token-list">
       <h2 className="tokens-title">Encounter</h2>
@@ -106,16 +137,26 @@ export function EncounterPanel({
               </div>
               <div className="token-card-info">
                 <h3 style={{ fontSize: "16px", marginBottom: "4px" }}>{token.name}</h3>
-                <label className="token-detail-field encounter-init-field">
-                  <span>Initiative:</span>
-                  <input
-                    type="number"
-                    value={token.init}
-                    onChange={(event) =>
-                      handleInitiativeChange(token.instanceId, event.currentTarget.value)
-                    }
-                  />
-                </label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
+                  <label className="token-detail-field encounter-init-field" style={{ marginTop: 0 }}>
+                    <span>Init:</span>
+                    <input
+                      type="number"
+                      value={token.init}
+                      onChange={(event) =>
+                        handleInitiativeChange(token.instanceId, event.currentTarget.value)
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="command-button"
+                    style={{ padding: "4px 8px", fontSize: "12px", minWidth: "48px", marginLeft: "auto" }}
+                    onClick={() => handleRollSingle(token.instanceId)}
+                  >
+                    Roll
+                  </button>
+                </div>
               </div>
             </div>
           </article>
@@ -127,6 +168,14 @@ export function EncounterPanel({
         )}
       </div>
       <div className="encounter-actions">
+        <button
+          type="button"
+          className="command-button encounter-action-btn"
+          onClick={handleRollAll}
+          disabled={placedTokens.length === 0}
+        >
+          Roll All
+        </button>
         <button
           type="button"
           className="command-button encounter-action-btn"
