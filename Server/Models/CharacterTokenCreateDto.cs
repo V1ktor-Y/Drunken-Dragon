@@ -13,6 +13,7 @@ public class CharacterTokenCreateDto
 
     [Required]
     public string Class { get; set; } = string.Empty;
+    public string Note {get;set;} = string.Empty;
 
     [Required]
     [Range(1, 1000, ErrorMessage = "Max HP must be between 1 and 1000")]

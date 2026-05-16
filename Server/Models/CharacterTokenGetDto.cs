@@ -8,6 +8,7 @@ public class CharacterTokenGetDto
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
     public string Class { get; set; } = string.Empty;
+    public string Note {get;set;} = string.Empty;
     public int MaxHp { get; set; }
     public int Speed { get; set; }
     public int ArmorClass { get; set; }
