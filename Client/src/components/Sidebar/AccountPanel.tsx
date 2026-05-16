@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { clearAllTokenImages } from "../../utils/indexedDB";
 
 type AccountMode = "register" | "login" | "loggedIn";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5195";
 const AUTH_TOKEN_STORAGE_KEY = "drunkenDragon.authToken";
 const AUTH_NAME_STORAGE_KEY = "drunkenDragon.username";
+const TOKEN_STORAGE_KEY = "drunkenDragon.tokens";
 const AUTH_CHANGED_EVENT = "drunkenDragon:authChanged";
 
 type AuthResponse = {
@@ -76,7 +78,7 @@ function getAuthResponse(result: unknown): AuthResponse | null {
 
 export function AccountPanel() {
   const [mode, setMode] = useState<AccountMode>(() =>
-    localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ? "loggedIn" : "register",
+    localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ? "loggedIn" : "login",
   );
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -142,6 +144,8 @@ export function AccountPanel() {
   const handleLogout = () => {
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(AUTH_NAME_STORAGE_KEY);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    clearAllTokenImages().catch(console.error);
     setLoggedInName("");
     setMode("login");
     setStatus("");

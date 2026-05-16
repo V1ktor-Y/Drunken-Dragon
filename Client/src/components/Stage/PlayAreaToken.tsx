@@ -160,9 +160,7 @@ function PlayAreaToken({
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-      >
-        {!imageSource && <span>{getInitials(name) || "T"}</span>}
-      </div>
+      />
       {isDragging && (
         <Droppable
           gridSize={gridSize}
