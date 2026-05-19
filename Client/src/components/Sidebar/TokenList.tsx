@@ -96,6 +96,7 @@ export function TokenList({
               size: "MED",
               init: "+0",
               isEnemy: false,
+              note: dto.note ?? "",
               imageSource: dto.icon && dto.icon !== "/uploads/icons/default.png" 
                 ? `${API_BASE_URL}${dto.icon}` 
                 : undefined
@@ -164,6 +165,7 @@ export function TokenList({
       size: "MED",
       init: "+0",
       isEnemy: false,
+      note: "",
     };
     const nextTokens = [newToken, ...tokens];
     setTokens(nextTokens);
@@ -187,6 +189,7 @@ export function TokenList({
         const formData = new FormData();
         formData.append("Name", updatedToken.name);
         formData.append("Class", updatedToken.type);
+        formData.append("Note", updatedToken.note ?? "");
         
         const [currentHp, maxHpStr] = updatedToken.hp.split("/");
         formData.append("MaxHp", (parseInt(maxHpStr || currentHp, 10) || 1).toString());

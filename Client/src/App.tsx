@@ -51,6 +51,7 @@ function App() {
       const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
       if (!token) {
         setPlacedTokens([]);
+        setGameFieldMaps([]);
         setEncounterTokens([]);
         setActiveTokenInstanceId(null);
         setSelectedTokenId(null);

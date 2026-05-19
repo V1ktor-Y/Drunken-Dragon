@@ -36,6 +36,7 @@ export function TokenCard(props: Props) {
   const [localInit, setLocalInit] = useState(props.init);
   const [localSpeed, setLocalSpeed] = useState(props.speed);
   const [localSize, setLocalSize] = useState(props.size);
+  const [localNote, setLocalNote] = useState(props.note ?? "");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,6 +50,29 @@ export function TokenCard(props: Props) {
     startX: number;
     startY: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (expanded) return;
+
+    setLocalName(props.name);
+    setLocalHp(props.hp);
+    setLocalAc(props.ac);
+    setLocalType(props.type);
+    setLocalInit(props.init);
+    setLocalSpeed(props.speed);
+    setLocalSize(props.size);
+    setLocalNote(props.note ?? "");
+  }, [
+    expanded,
+    props.ac,
+    props.hp,
+    props.init,
+    props.name,
+    props.note,
+    props.size,
+    props.speed,
+    props.type,
+  ]);
 
   useEffect(() => {
     if (props.selectedTokenId !== props.id) return;
@@ -109,16 +133,17 @@ export function TokenCard(props: Props) {
   const getCurrentToken = (): SidebarToken => ({
     id: props.id,
     name: localName,
-    type: props.type,
+    type: localType,
     hp: localHp,
-    ac: props.ac,
+    ac: localAc,
     speed: localSpeed,
     size: localSize,
-    init: props.init,
+    init: localInit,
     isEnemy: props.isEnemy,
     imageSource: avatarPreview ?? props.imageSource,
     sourceTokenId: props.sourceTokenId,
     baseName: props.baseName,
+    note: localNote,
   });
 
   const movePreview = (preview: HTMLDivElement, clientX: number, clientY: number) => {
@@ -334,7 +359,13 @@ export function TokenCard(props: Props) {
               </label>
               <div style={{ display: "flex", gap: "6px", alignItems: "flex-start", marginTop: "8px" }}>
                 <img src={notesIcon} alt="Notes" style={{ width: "16px", height: "16px", marginTop: "6px" }} />
-                <textarea className="token-notes" placeholder="Notes..." style={{ flex: 1 }}></textarea>
+                <textarea
+                  className="token-notes"
+                  placeholder="Notes..."
+                  style={{ flex: 1 }}
+                  value={localNote}
+                  onChange={(e) => setLocalNote(e.target.value)}
+                />
               </div>
               <div className="token-actions">
                 <button type="button" className="token-save-btn" onClick={handleSave}>Save Token</button>

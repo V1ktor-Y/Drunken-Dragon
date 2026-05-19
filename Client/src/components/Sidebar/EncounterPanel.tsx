@@ -13,15 +13,6 @@ function getInitiativeValue(init: string) {
   return Number.isFinite(parsedInit) ? parsedInit : 0;
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
-}
-
 function getSortedEncounterTokens(tokens: PlacedToken[]) {
   return [...tokens].sort((firstToken, secondToken) => {
     const initDifference =

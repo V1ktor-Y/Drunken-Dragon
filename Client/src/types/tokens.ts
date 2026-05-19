@@ -11,6 +11,7 @@ export interface SidebarToken {
   imageSource?: string;
   sourceTokenId?: string;
   baseName?: string;
+  note?: string;
 }
 
 export interface PlacedToken extends SidebarToken {
